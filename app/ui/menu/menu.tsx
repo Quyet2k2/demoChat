@@ -62,25 +62,11 @@ export default function Sidebar() {
     return data.success;
   };
 
-  const checkLogout = async () => {
-    const res = await fetch('/api/users', {
-      method: 'POST',
-      body: JSON.stringify({ action: 'me' }),
-    });
-    if (res.status === 401) return true; // đã logout
-    return false; // vẫn còn session
-  };
-
   const handleFinalLogout = async () => {
     try {
       await finalizeLogout(); // gọi API xóa cookie
-      const loggedOut = await checkLogout(); // kiểm tra session
-      if (loggedOut) {
-        cookieBase.remove('info_user'); // xóa client cache
-        router.push('/login'); // redirect
-      } else {
-        alert('Đăng xuất không thành công, vui lòng thử lại.');
-      }
+      cookieBase.remove('info_user'); // xóa client cache
+      router.push('/login'); // redirect
     } catch (error) {
       console.error(error);
       alert('Có lỗi xảy ra khi đăng xuất.');

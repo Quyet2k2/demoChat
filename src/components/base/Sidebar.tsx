@@ -3,7 +3,8 @@ import ChatItem from './ChatItem'; // Import component con
 import IconBB from '@/public/icons/bb.svg';
 import IconGroup from '@/public/icons/group.svg';
 import { User } from '../../types/User';
-import { GroupConversation } from '../../types/Group';
+import type { GroupConversation, ChatItem as ChatItemType } from '../../types/Group';
+import Image from 'next/image';
 
 interface SidebarProps {
   currentUser: User;
@@ -12,8 +13,8 @@ interface SidebarProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   setShowCreateGroupModal: (show: boolean) => void;
-  selectedChat: any;
-  onSelectChat: (item: any) => void;
+  selectedChat: ChatItemType | null;
+  onSelectChat: (item: ChatItemType) => void;
   onChatAction: (roomId: string, actionType: 'pin' | 'hide', isChecked: boolean, isGroup: boolean) => void;
   onShowGlobalSearch: () => void;
 }
@@ -97,15 +98,9 @@ export default function Sidebar({
   // 1. GỘP DATA: Nối mảng groups và allUsers lại
   const mixedChats = [...groups, ...allUsers];
 
-  // 2. LỌC (HIDE): Lọc bỏ những chat đã bị ẩn bởi currentUser
-  const visibleChats = mixedChats.filter((chat: any) => {
-    // isHidden là trường được tính toán từ API users/groups cho user hiện tại
-    return !chat.isHidden;
-  });
-
-  // 2. LỌC (SEARCH)
-  const filteredChats = mixedChats.filter((chat: any) => {
-    const isHidden = chat.isHidden;
+  // 2. LỌC (SEARCH + HIDE)
+  const filteredChats = mixedChats.filter((chat) => {
+    const isHidden = chat.isHidden === true;
     const isSearching = searchTerm.trim() !== '';
     const matchesSearch = chat.name?.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -120,13 +115,13 @@ export default function Sidebar({
     }
   });
   // 4. SẮP XẾP (Ưu tiên Ghim, sau đó đến thời gian)
-  filteredChats.sort((a: any, b: any) => {
+  filteredChats.sort((a, b) => {
     const timeA = a.lastMessageAt || 0;
     const timeB = b.lastMessageAt || 0;
 
     // 🔥 Lấy trạng thái Ghim (isPinned là trường được tính toán từ API users/groups cho user hiện tại)
-    const aPinned = a.isPinned || false;
-    const bPinned = b.isPinned || false;
+    const aPinned = a.isPinned === true;
+    const bPinned = b.isPinned === true;
 
     // A. Ưu tiên Ghim: Chat được ghim (true) luôn đứng trước chat không ghim (false)
     if (aPinned && !bPinned) return -1; // a lên trước b
@@ -140,67 +135,114 @@ export default function Sidebar({
   });
 
   return (
-    <aside className="relative flex flex-col h-full bg-white border-r border-gray-200 w-full md:w-80">
-      {/* --- Header Sidebar --- */}
-      <div className="p-4 border-b-[1px] border-b-gray-300 bg-gray-50 flex-col space-y-3">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-              {currentUser.name?.charAt(0).toUpperCase()}
+    <aside className="relative flex flex-col h-full bg-[#f4f6f9] border-r border-gray-200 w-full md:w-80">
+      {/* --- Thanh trên cùng kiểu Zalo --- */}
+      <div className="border-b border-blue-600/20">
+        {/* Top bar: avatar + action icons trên nền xanh (giống Zalo) */}
+        <div className="px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-between text-white">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-full bg-white/20 overflow-hidden flex items-center justify-center text-sm font-semibold">
+              {currentUser.avatar ? (
+                <Image
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                currentUser.name?.charAt(0).toUpperCase()
+              )}
             </div>
-            <span className="font-semibold text-sm truncate max-w-[120px]">{currentUser.name}</span>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-semibold truncate max-w-[140px]">
+                {currentUser.name || currentUser.username}
+              </span>
+              <span className="text-[11px] opacity-80 truncate max-w-[160px]">ID: {currentUser.username}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1">
+            {/* Nút mở Global Search */}
+            <button
+              onClick={onShowGlobalSearch}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors"
+              title="Tìm kiếm tin nhắn/liên hệ"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-4.35-4.35M17 10.5A6.5 6.5 0 1110.5 4a6.5 6.5 0 016.5 6.5z"
+                />
+              </svg>
+            </button>
+
+            {/* Nút tạo nhóm mới */}
+            <button
+              onClick={() => setShowCreateGroupModal(true)}
+              className="w-8 h-8 hidden md:flex items-center justify-center rounded-full hover:bg-white/15 transition-colors"
+              title="Tạo nhóm chat mới"
+            >
+              <Image
+                src={IconGroup}
+                width={20}
+                height={20}
+                alt="Group Icon"
+                className="w-5 h-5 object-contain text-white"
+              />
+            </button>
           </div>
         </div>
 
-        {/* 🔥 NÚT MỞ GLOBAL SEARCH (ĐẶT Ở ĐÂY) */}
-        <button
-          onClick={onShowGlobalSearch}
-          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 ml-2"
-          title="Tìm kiếm tin nhắn/liên hệ"
-        >
-          {/* Icon Search */}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="w-5 h-5 text-gray-600"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM2.25 10.5a8.25 8.25 0 1114.5 5.5l5.5 5.5a.75.75 0 11-1.06 1.06l-5.5-5.5a8.25 8.25 0 01-14.5-5.5z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
-        <div className="flex items-center justify-between">
-          <input
-            type="text"
-            placeholder="Tìm kiếm..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="px-3 py-2 text-sm w-full rounded-full text-black bg-gray-100 focus:outline-none"
-          />
-          {/* Các nút chức năng (Sẽ không bị nháy nữa) */}
-          <div className="hidden md:flex items-center gap-2 ml-2">
-            <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
-              <img src={IconBB.src} alt="BB Icon" className="w-5 h-5 object-contain" />
-            </button>
-            <button
-              onClick={() => setShowCreateGroupModal(true)}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
-            >
-              <img src={IconGroup.src} alt="Group Icon" className="w-6 h-6 object-contain" />
+        {/* Thanh tìm kiếm bên dưới, nền sáng */}
+        <div className="px-3 py-3 bg-white shadow-sm">
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Tìm kiếm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-sm rounded-full bg-[#f1f3f5] text-gray-900 placeholder:text-gray-400 outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 focus:border-blue-400 border border-transparent transition-all"
+              />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-4.35-4.35M17 10.5A6.5 6.5 0 1110.5 4a6.5 6.5 0 016.5 6.5z"
+                />
+              </svg>
+            </div>
+
+            {/* Icon BB bên phải trên desktop */}
+            <button className="hidden md:flex w-8 h-8 items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+              <Image src={IconBB} width={20} height={20} alt="BB Icon" className="w-5 h-5 object-contain" />
             </button>
           </div>
         </div>
       </div>
 
       {/* --- Danh sách Chat --- */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-white">
         {filteredChats.length === 0 ? (
           <div className="p-5 text-center text-gray-400 text-sm">Chưa có cuộc trò chuyện nào.</div>
         ) : (
-          filteredChats.map((item: any) => {
+          filteredChats.map((item) => {
             // Xác định item là Group hay User để truyền prop isGroup
             const isGroupItem = item.isGroup === true || Array.isArray(item.members);
             return (

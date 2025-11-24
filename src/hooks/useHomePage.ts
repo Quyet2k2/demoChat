@@ -125,7 +125,7 @@ export function useHomePage() {
 
         const messageData = await res.json();
         const allMessages = (messageData.data || []) as any[];
-        
+
         // Filter messages to only include allowed types and map to GlobalSearchMessage format
         const messages: GlobalSearchMessage[] = allMessages
           .filter((msg: any) => ['text', 'image', 'file', 'sticker'].includes(msg.type))

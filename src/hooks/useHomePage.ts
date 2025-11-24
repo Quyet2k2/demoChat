@@ -6,17 +6,9 @@ import io, { type Socket } from 'socket.io-client';
 
 import { User } from '@/types/User';
 import { ChatItem, GroupConversation } from '@/types/Group';
-import type { Message as BaseMessage } from '@/types/Message';
+import type { GlobalSearchMessage, GlobalSearchContact } from '@/components/(home)/HomeOverlays';
 
 type SearchContact = ChatItem;
-
-type GlobalSearchMessage = BaseMessage & {
-  roomName?: string;
-  isGroupChat?: boolean;
-  partnerId?: string;
-  partnerName?: string;
-  senderName?: string;
-};
 
 interface SidebarUpdateData {
   sender: string;
@@ -48,7 +40,7 @@ export function useHomePage() {
   const [showGlobalSearchModal, setShowGlobalSearchModal] = useState(false);
   const [globalSearchTerm, setGlobalSearchTerm] = useState('');
   const [globalSearchResults, setGlobalSearchResults] = useState<{
-    contacts: SearchContact[];
+    contacts: GlobalSearchContact[];
     messages: GlobalSearchMessage[];
   }>({
     contacts: [],
@@ -57,23 +49,40 @@ export function useHomePage() {
 
   const [scrollToMessageId, setScrollToMessageId] = useState<string | null>(null);
 
-  const handleSelectContact = useCallback((contact: SearchContact) => {
-    // Đóng modal
-    setShowGlobalSearchModal(false);
+  const handleSelectContact = useCallback(
+    (contact: GlobalSearchContact) => {
+      // Đóng modal
+      setShowGlobalSearchModal(false);
 
-    // Reset scroll state
-    setScrollToMessageId(null);
+      // Reset scroll state
+      setScrollToMessageId(null);
 
-    // Chọn chat
-    setSelectedChat(contact);
+      // Tìm contact đầy đủ từ allUsers hoặc groups
+      let fullContact: ChatItem | null = null;
 
-    // Reset unread count
-    if ((contact as GroupConversation).isGroup || (contact as GroupConversation).members) {
-      setGroups((prev) => prev.map((g) => (g._id === contact._id ? { ...g, unreadCount: 0 } : g)));
-    } else {
-      setAllUsers((prev) => prev.map((u) => (u._id === contact._id ? { ...u, unreadCount: 0 } : u)));
-    }
-  }, []);
+      if (contact.isGroup) {
+        fullContact = groups.find((g) => g._id === contact._id) ?? null;
+      } else {
+        fullContact = allUsers.find((u) => u._id === contact._id) ?? null;
+      }
+
+      if (!fullContact) {
+        console.warn('Contact not found:', contact._id);
+        return;
+      }
+
+      // Chọn chat
+      setSelectedChat(fullContact);
+
+      // Reset unread count
+      if ((fullContact as GroupConversation).isGroup || (fullContact as GroupConversation).members) {
+        setGroups((prev) => prev.map((g) => (g._id === fullContact!._id ? { ...g, unreadCount: 0 } : g)));
+      } else {
+        setAllUsers((prev) => prev.map((u) => (u._id === fullContact!._id ? { ...u, unreadCount: 0 } : u)));
+      }
+    },
+    [groups, allUsers],
+  );
 
   const handleGlobalSearch = useCallback(
     async (term: string) => {
@@ -88,9 +97,15 @@ export function useHomePage() {
 
       // 1. Lọc liên hệ/nhóm (Local - Instant)
       const allChats = [...groups, ...allUsers];
-      const contactResults = allChats
+      const contactResults: GlobalSearchContact[] = allChats
         .filter((c) => c.name?.toLowerCase().includes(lowerCaseTerm))
         .filter((c) => !c.isHidden)
+        .map((c) => ({
+          _id: c._id,
+          name: c.name,
+          avatar: c.avatar,
+          isGroup: (c as GroupConversation).isGroup || !!(c as GroupConversation).members,
+        }))
         .slice(0, 10); // Giới hạn 10 kết quả
 
       // 2. Gọi API tìm kiếm tin nhắn (Backend)
@@ -109,7 +124,28 @@ export function useHomePage() {
         });
 
         const messageData = await res.json();
-        const messages = (messageData.data || []) as GlobalSearchMessage[];
+        const allMessages = (messageData.data || []) as any[];
+        
+        // Filter messages to only include allowed types and map to GlobalSearchMessage format
+        const messages: GlobalSearchMessage[] = allMessages
+          .filter((msg: any) => ['text', 'image', 'file', 'sticker'].includes(msg.type))
+          .map((msg: any) => ({
+            _id: msg._id,
+            content: msg.content,
+            type: msg.type as 'text' | 'image' | 'file' | 'sticker',
+            fileName: msg.fileName,
+            timestamp: msg.timestamp,
+            sender: msg.sender,
+            senderName: msg.senderName || '',
+            roomId: msg.roomId,
+            roomName: msg.roomName || '',
+            isGroupChat: msg.isGroupChat || false,
+            partnerId: msg.partnerId,
+            partnerName: msg.partnerName,
+            fileUrl: msg.fileUrl,
+            receiver: msg.receiver,
+            displayRoomName: msg.displayRoomName,
+          }));
 
         setGlobalSearchResults({
           contacts: contactResults,

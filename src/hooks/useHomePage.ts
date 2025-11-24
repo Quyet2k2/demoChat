@@ -223,11 +223,17 @@ export function useHomePage() {
     [currentUser, groups, allUsers],
   );
 
-  // 🔥 HÀM MỞ MODAL TÌM KIẾM TOÀN CỤC
+  // 🔥 HÀM MỞ / ĐÓNG MODAL TÌM KIẾM TOÀN CỤC (TOGGLE)
   const handleOpenGlobalSearch = useCallback(() => {
-    setGlobalSearchTerm('');
-    setGlobalSearchResults({ contacts: [], messages: [] });
-    setShowGlobalSearchModal(true);
+    setShowGlobalSearchModal((prev) => {
+      const next = !prev;
+      if (next) {
+        // Khi mở lại modal thì reset state tìm kiếm
+        setGlobalSearchTerm('');
+        setGlobalSearchResults({ contacts: [], messages: [] });
+      }
+      return next;
+    });
   }, []);
 
   const handleNavigateToMessage = useCallback(

@@ -24,13 +24,14 @@ import CLoudIcon from '@/public/icons/cloud-icon.svg';
 import BagIcon from '@/public/icons/bag-icon.svg';
 import SettingsIcon from '@/public/icons/setting-icon.svg';
 
-import AccountInfoModal from '../base/Profile';
+import PopupProfile from '../base/PopupProfile';
 import SettingsPanel from '../base/Setting';
 import ZaloContactCard from './help';
 import ZaloCloudPopup from './icloud';
 import { cookieBase } from '../../utils/cookie';
 import { User } from '../../types/User';
 import Image from 'next/image';
+import { getProxyUrl } from '../../utils/utils';
 
 export default function SidebarMenu() {
   const router = useRouter();
@@ -53,9 +54,16 @@ export default function SidebarMenu() {
 
   // Hàm thực hiện hành động cuối cùng
   const finalizeLogout = () => {
+    // Xóa session trên cookie (JWT)
     cookieBase.remove('session_token');
     cookieBase.remove('remember_login');
-    // localStorage.removeItem('info_user'); // Xóa localStorage
+
+    // Xóa thông tin user & cài đặt remember_login ở localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('info_user');
+      localStorage.removeItem('remember_login');
+    }
+
     router.push('/login');
   };
   useEffect(() => {
@@ -87,8 +95,20 @@ export default function SidebarMenu() {
   const [userInfo, setUserInfo] = useState<User | null>(null);
 
   useEffect(() => {
-    const user = cookieBase.get<User>('info_user'); // Lấy user từ cookie
-    if (user) setUserInfo(user);
+    // Lấy thông tin user từ localStorage (đã được lưu sau khi login)
+    if (typeof window === 'undefined') return;
+
+    try {
+      const raw = localStorage.getItem('info_user');
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as User;
+      if (parsed && parsed._id) {
+        setUserInfo(parsed);
+      }
+    } catch (e) {
+      console.error('Không đọc được info_user từ localStorage', e);
+    }
   }, []);
 
   return (
@@ -101,9 +121,9 @@ export default function SidebarMenu() {
             className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/60 hover:border-yellow-300 transition-colors bg-white/10 flex items-center justify-center"
           >
             {userInfo?.avatar ? (
-              // Avatar thật từ thông tin user
-              <Image
-                src={userInfo.avatar}
+              // Avatar thật từ thông tin user (qua proxy để load đúng ảnh từ Mega)
+              <img
+                src={getProxyUrl(userInfo.avatar)}
                 width={40}
                 height={40}
                 alt={userInfo.name}
@@ -122,8 +142,8 @@ export default function SidebarMenu() {
               <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full overflow-hidden bg-blue-500 text-white flex items-center justify-center text-sm font-semibold">
                   {userInfo?.avatar ? (
-                    <Image
-                      src={userInfo.avatar}
+                    <img
+                      src={getProxyUrl(userInfo.avatar)}
                       width={40}
                       height={40}
                       alt={userInfo.name}
@@ -147,15 +167,6 @@ export default function SidebarMenu() {
                 <Image src={IconUser} width={20} height={20} alt="User Icon" className="w-5 h-5" />
                 <span className="text-sm text-gray-800">Thông tin tài khoản</span>
               </button>
-
-              {userInfo && (
-                <AccountInfoModal
-                  show={showModal}
-                  onClose={() => setShowModal(false)}
-                  user={userInfo} // Truyền dynamic user
-                  iconUpdateUrl="/path/to/icon.svg"
-                />
-              )}
 
               {/* Nút Cài đặt */}
               <button
@@ -370,6 +381,25 @@ export default function SidebarMenu() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Popup xem thông tin tài khoản (Profile) */}
+      {userInfo && (
+        <PopupProfile
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          user={userInfo}
+          onAvatarUpdated={(newUrl) =>
+            setUserInfo((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    avatar: newUrl,
+                  }
+                : prev,
+            )
+          }
+        />
       )}
       {/* SettingsPanel popup kiểu Zalo */}
       {showSettingsPanel && (

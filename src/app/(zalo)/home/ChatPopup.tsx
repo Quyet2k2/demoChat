@@ -158,6 +158,7 @@ export default function ChatWindow({
 
   const roomId = isGroup ? getId(selectedChat) : getOneToOneRoomId(getId(currentUser), getId(selectedChat));
   const chatName = selectedChat.name;
+  const chatAvatar = (selectedChat as { avatar?: string }).avatar;
 
   const sendMessageProcess = useCallback(
     async (msgData: MessageCreate) => {
@@ -809,6 +810,7 @@ export default function ChatWindow({
           showPopup={showPopup}
           onTogglePopup={() => setShowPopup((prev) => !prev)}
           onOpenMembers={() => setOpenMember(true)}
+          avatar={chatAvatar}
         />
         <PinnedMessagesSection
           allPinnedMessages={allPinnedMessages}

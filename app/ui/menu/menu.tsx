@@ -373,8 +373,12 @@ export default function Sidebar() {
 
       {/* SettingsPanel full-screen overlay */}
       {showSettingsPanel && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/40 backdrop-blur-sm px-3">
+        <div
+          onClick={() => setShowSettingsPanel(false)}
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/40 backdrop-blur-sm px-3"
+        >
           <div
+            onClick={(e) => e.stopPropagation()} // ⛔ chặn nổi bọt
             className="w-full max-w-4xl max-h-[calc(100%-3rem)] bg-gray-100 rounded-lg shadow-lg overflow-hidden
                  transform transition-all duration-300 ease-out
                  scale-95 opacity-0 animate-showModal"

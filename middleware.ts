@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyJWT } from '@/lib/auth'; // Đảm bảo đường dẫn này đúng với cấu trúc của bạn
+import { verifyJWT } from '@/lib/auth';
 
 // Danh sách các trang cần bảo vệ
 const protectedRoutes = ['/home'];

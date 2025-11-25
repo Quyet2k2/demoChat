@@ -46,7 +46,7 @@ export default function ChatInput({
       {/* Hàng icon công cụ: Emoji, ảnh/video, file, voice (sẽ nằm trên input ở màn nhỏ) */}
       <div className="flex items-center gap-2 flex-shrink-0">
         <button
-          className="p-2 rounded-full hover:bg-gray-100 text-gray-600 relative w-10 h-10"
+          className="p-2 cursor-pointer rounded-full hover:bg-gray-100 text-gray-600 relative w-10 h-10"
           onClick={onToggleEmojiPicker}
           aria-pressed={showEmojiPicker}
         >
@@ -66,7 +66,7 @@ export default function ChatInput({
           }}
         />
         <button
-          className="p-2 rounded-full hover:bg-gray-100 text-gray-600"
+          className="p-2 cursor-pointer rounded-full hover:bg-gray-100 text-gray-600"
           onClick={() => document.getElementById('imageInput')?.click()}
         >
           <ICPicture className="w-6 h-6" stroke="#000000" />
@@ -84,7 +84,7 @@ export default function ChatInput({
           }}
         />
         <button
-          className="p-2 rounded-full hover:bg-gray-100 text-gray-600"
+          className="p-2 cursor-pointer rounded-full hover:bg-gray-100 text-gray-600"
           onClick={() => document.getElementById('fileInput')?.click()}
         >
           {/* <Image src={FileICon} alt="Chọn file" width={25} height={25} /> */}
@@ -92,7 +92,7 @@ export default function ChatInput({
         </button>
 
         <button
-          className={`p-2 rounded-full transition-all ${
+          className={`p-2 rounded-full transition-all cursor-pointer ${
             isListening
               ? 'bg-red-100 text-red-600 animate-pulse ring-2 ring-red-400'
               : 'hover:bg-gray-100 text-gray-600'
@@ -121,7 +121,7 @@ export default function ChatInput({
           }}
         />
 
-        <button className="p-2 rounded-full hover:bg-blue-100 text-blue-500" onClick={onSendMessage}>
+        <button className="p-2 rounded-full hover:bg-blue-100 text-blue-500 cursor-pointer" onClick={onSendMessage}>
           <ICSend className="w-6 h-6" stroke="#2579fe" />
         </button>
       </div>

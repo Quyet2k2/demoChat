@@ -7,6 +7,7 @@ import { User } from '../../../types/User';
 import { GroupConversation } from '@/types/Group';
 import { useCreateGroupModal } from '@/hooks/useCreateGroupModal';
 import { getProxyUrl } from '@/utils/utils';
+import ICClose from '@/components/svg/ICClose';
 
 interface Props {
   currentUser: User;
@@ -76,18 +77,9 @@ export default function CreateGroupModal({
           </h3>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-white/15 transition-colors flex items-center justify-center"
+            className="p-1.5 cursor-pointer rounded-full hover:bg-white/15 transition-colors flex items-center justify-center"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-5 h-5 sm:w-6 sm:h-6"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <ICClose className="w-5 h-5" stroke="#ffffff" />
           </button>
         </div>
 
@@ -264,14 +256,14 @@ export default function CreateGroupModal({
         <div className="flex-none p-4 bg-white border-t border-gray-200 flex gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
           <button
             onClick={onClose}
-            className="flex-1 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+            className="flex-1 cursor-pointer py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
           >
             Hủy
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className={`flex-1 py-3 text-sm font-semibold text-white rounded-xl transition-all shadow-lg shadow-blue-200
+            className={`flex-1 cursor-pointer py-3 text-sm font-semibold text-white rounded-xl transition-all shadow-lg shadow-blue-200
                             ${loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700 active:scale-95'}`}
           >
             {loading

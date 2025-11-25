@@ -35,7 +35,7 @@ export default function MessageFilter({ filterType, setFilterType, counts }: Mes
           key={filter}
           onClick={() => setFilterType(filter)}
           className={`
-            px-3 py-1.5 text-xs rounded-full transition-all font-medium
+            px-3 py-1.5 text-xs rounded-full transition-all font-medium cursor-pointer
             flex items-center gap-1.5 flex-shrink-0
             ${
               filterType === filter ? 'bg-blue-500 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

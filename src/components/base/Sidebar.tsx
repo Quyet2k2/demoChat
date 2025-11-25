@@ -414,7 +414,7 @@ export default function Sidebar({
             {/* Nút tạo nhóm mới */}
             <button
               onClick={() => setShowCreateGroupModal(true)}
-              className="w-8 h-8 hidden md:flex items-center justify-center rounded-full hover:bg-white/15 transition-colors"
+              className="w-8 h-8 cursor-pointer hidden md:flex items-center justify-center rounded-full hover:bg-white/15 transition-colors"
               title="Tạo nhóm chat mới"
             >
               <ICGroupPeople className="w-5 h-5" stroke="#000000" />

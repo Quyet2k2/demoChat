@@ -506,7 +506,7 @@ export default function ChatInfoPopup({
                 <button
                   type="button"
                   onClick={() => setConfirmAction('leave')}
-                  className="flex flex-col items-center text-xs text-gray-700 hover:text-red-600 transition-colors"
+                  className="flex cursor-pointer flex-col items-center text-xs text-gray-700 hover:text-red-600 transition-colors"
                 >
                   <div className="rounded-full w-8 h-8 flex justify-center items-center bg-gray-200 hover:bg-red-100 text-red-500 mb-1 transition-colors">
                     <ICOutGroup className="w-5 h-5" />
@@ -519,7 +519,7 @@ export default function ChatInfoPopup({
                 <button
                   type="button"
                   onClick={() => setConfirmAction('disband')}
-                  className="flex flex-col items-center text-xs text-gray-700 hover:text-red-700 transition-colors"
+                  className="flex cursor-pointer flex-col items-center text-xs text-gray-700 hover:text-red-700 transition-colors"
                 >
                   <div className="rounded-full w-8 h-8 flex justify-center items-center bg-gray-200 hover:bg-red-100 text-red-600 mb-1 transition-colors">
                     <ICLayoutGroup className="w-5 h-5" />
@@ -903,14 +903,14 @@ export default function ChatInfoPopup({
             <div className="flex justify-end gap-2">
               <button
                 type="button"
-                className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
+                className="px-3 cursor-pointer py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
                 onClick={() => setConfirmAction(null)}
               >
                 Hủy
               </button>
               <button
                 type="button"
-                className={`px-3 py-1.5 text-sm rounded-md text-white hover:opacity-90 ${
+                className={`px-3 cursor-pointer py-1.5 text-sm rounded-md text-white hover:opacity-90 ${
                   confirmAction === 'leave' ? 'bg-red-500' : 'bg-red-600'
                 }`}
                 onClick={() => {

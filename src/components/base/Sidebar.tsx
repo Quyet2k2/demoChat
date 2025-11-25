@@ -6,6 +6,11 @@ import SearchResults from '@/components/(chatPopup)/SearchResults';
 import { User } from '../../types/User';
 import type { GroupConversation, ChatItem as ChatItemType } from '../../types/Group';
 import Image from 'next/image';
+import { getProxyUrl } from '../../utils/utils';
+import ICSearch from '@/components/svg/ICSearch';
+import ICGroupPeople from '@/components/svg/ICGroupPeople';
+import ICPersonPlus from '@/components/svg/ICPersonPlus';
+import MessageFilter from '../(chatPopup)/MessageFilter';
 
 interface SidebarProps {
   currentUser: User;
@@ -41,10 +46,8 @@ interface GlobalSearchResult {
   messages: Message[];
 }
 
-// Hàm lấy tên hiển thị cho 1 item (User hoặc Group)
 const getChatDisplayName = (chat: any): string => {
   const maybeGroup = chat as GroupConversation;
-  // Dùng `hasOwnProperty` để kiểm tra an toàn hơn, nhưng dùng `isGroup === true` hoặc `Array.isArray(members)` cũng ổn
   const isGroupChat = maybeGroup.isGroup === true || Array.isArray(maybeGroup.members);
 
   if (isGroupChat) {
@@ -52,7 +55,6 @@ const getChatDisplayName = (chat: any): string => {
   }
 
   const user = chat as User;
-  // Giả định chat là User nếu không phải Group
   return (user.name || user.username || 'Người dùng').trim();
 };
 
@@ -133,6 +135,8 @@ export default function Sidebar({
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  const [filterType, setFilterType] = useState<'all' | 'unread' | 'read'>('all');
+
   // Handle global search (API call logic)
   const handleGlobalSearch = useCallback(
     async (term: string) => {
@@ -151,7 +155,6 @@ export default function Sidebar({
 
       // 2. Gọi API tìm tin nhắn
       try {
-        // Giả định API endpoint và cấu trúc request/response
         const res = await fetch('/api/messages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -259,59 +262,79 @@ export default function Sidebar({
     setGlobalSearchResults({ contacts: [], messages: [] });
   };
 
-  // --- Regular Chat List Logic (Memoized) ---
+  // --- Regular Chat List Logic with Filter (Memoized) ---
   const mixedChats = useMemo(() => [...groups, ...allUsers], [groups, allUsers]);
 
-  const filteredChats = useMemo(() => {
-    return mixedChats.filter((chat: any) => {
+  const isSearchActive = searchTerm.trim().length > 0;
+
+  // 🔥 LOGIC CHÍNH: Áp dụng filter cho cả search và default
+  const filteredAndSortedChats = useMemo(() => {
+    // 1. Lọc theo search term và hidden status
+    let filtered = mixedChats.filter((chat: any) => {
       const isHidden = chat.isHidden;
-      const isSearching = searchTerm.trim() !== '';
       const displayName = getChatDisplayName(chat);
-      const matchesSearch = displayName.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = isSearchActive ? displayName.toLowerCase().includes(searchTerm.toLowerCase()) : true;
 
-      if (isSearching) {
-        return matchesSearch;
-      } else {
-        return !isHidden;
-      }
+      // Khi search: hiển thị cả hidden, khi không search: ẩn hidden
+      return isSearchActive ? matchesSearch : !isHidden && matchesSearch;
     });
-  }, [mixedChats, searchTerm]);
 
-  const sortedChats = useMemo(() => {
-    return [...filteredChats].sort((a: any, b: any) => {
+    // 2. Áp dụng filter read/unread (chỉ khi KHÔNG search)
+    if (!isSearchActive) {
+      if (filterType === 'unread') {
+        filtered = filtered.filter((chat: any) => (chat.unreadCount || 0) > 0);
+      } else if (filterType === 'read') {
+        filtered = filtered.filter((chat: any) => (chat.unreadCount || 0) === 0);
+      }
+    }
+
+    // 3. Sắp xếp: Pin trước, sau đó theo thời gian
+    filtered.sort((a: any, b: any) => {
       const timeA = a.lastMessageAt || 0;
       const timeB = b.lastMessageAt || 0;
       const aPinned = a.isPinned || false;
       const bPinned = b.isPinned || false;
 
-      // 1. Ưu tiên Ghim
+      // Ưu tiên ghim
       if (aPinned && !bPinned) return -1;
       if (!aPinned && bPinned) return 1;
 
-      // 2. Nếu không có tin nhắn (timeA === 0 && timeB === 0), sắp xếp theo tên
+      // Nếu không có tin nhắn, sắp xếp theo tên
       if (timeA === 0 && timeB === 0) {
         const nameA = getChatDisplayName(a);
         const nameB = getChatDisplayName(b);
         return nameA.localeCompare(nameB);
       }
 
-      // 3. Sắp xếp theo thời gian tin nhắn mới nhất
+      // Sắp xếp theo thời gian
       return timeB - timeA;
     });
-  }, [filteredChats]);
+
+    return filtered;
+  }, [mixedChats, searchTerm, filterType, isSearchActive]);
+
+  // 🔥 Tính số lượng cho mỗi filter (để hiển thị badge)
+  const filterCounts = useMemo(() => {
+    const visibleChats = mixedChats.filter((chat: any) => !chat.isHidden);
+    return {
+      all: visibleChats.length,
+      unread: visibleChats.filter((chat: any) => (chat.unreadCount || 0) > 0).length,
+      read: visibleChats.filter((chat: any) => (chat.unreadCount || 0) === 0).length,
+    };
+  }, [mixedChats]);
 
   return (
     <aside className="relative flex flex-col h-full bg-[#f4f6f9] border-r border-gray-200 w-full md:w-80">
       {/* --- Thanh trên cùng kiểu Zalo --- */}
       <div className="border-b border-blue-600/20">
-        {/* Top bar: avatar + action icons trên nền xanh (giống Zalo) */}
+        {/* Top bar: avatar + action icons */}
         <div className="px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-between text-white">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 rounded-full bg-white/20 overflow-hidden flex items-center justify-center text-sm font-semibold">
               {currentUser.avatar ? (
-                <Image
-                  src={currentUser.avatar}
-                  alt={currentUser.name || 'User Avatar'}
+                <img
+                  src={getProxyUrl(currentUser.avatar)}
+                  alt={currentUser.name}
                   width={32}
                   height={32}
                   className="w-full h-full object-cover"
@@ -322,36 +345,14 @@ export default function Sidebar({
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-semibold truncate max-w-[140px]">
-                {/* Hiển thị tên người dùng hiện tại */}
                 {currentUser.name || currentUser.username}
               </span>
               <span className="text-[11px] opacity-80 truncate max-w-[160px]">ID: {currentUser.username}</span>
             </div>
           </div>
-
-          <div className="flex items-center gap-1">
-            {/* Nút mở Global Search (Đã bị loại bỏ khỏi Header Zalo design trong code cuối cùng, nhưng giữ lại logic cũ) */}
-            {/* Giữ lại logic của onShowGlobalSearch nếu cần, nhưng prop này không tồn tại trong SidebarProps của Đoạn 1, nên tôi tạm bỏ nút này để không gây lỗi. Nếu bạn cần, hãy thêm `onShowGlobalSearch` vào `SidebarProps` */}
-            {/* <button ... onClick={onShowGlobalSearch} ... /> */}
-
-            {/* Nút tạo nhóm mới */}
-            <button
-              onClick={() => setShowCreateGroupModal(true)}
-              className="w-8 h-8 hidden md:flex items-center justify-center rounded-full hover:bg-white/15 transition-colors"
-              title="Tạo nhóm chat mới"
-            >
-              <Image
-                src={IconGroup}
-                width={20}
-                height={20}
-                alt="Group Icon"
-                className="w-5 h-5 object-contain text-white"
-              />
-            </button>
-          </div>
         </div>
 
-        {/* Thanh tìm kiếm bên dưới, nền sáng (Sử dụng cho logic Debounce Search) */}
+        {/* Thanh tìm kiếm */}
         <div className="px-3 py-3 bg-white shadow-sm">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
@@ -392,18 +393,24 @@ export default function Sidebar({
               )}
             </div>
 
-            {/* Icon BB bên phải trên desktop */}
-            <button className="hidden md:flex w-8 h-8 items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
-              <Image src={IconBB} width={20} height={20} alt="BB Icon" className="w-5 h-5 object-contain" />
+            {/* Nút tạo nhóm mới */}
+            <button
+              onClick={() => setShowCreateGroupModal(true)}
+              className="w-8 h-8 hidden md:flex items-center justify-center rounded-full hover:bg-white/15 transition-colors"
+              title="Tạo nhóm chat mới"
+            >
+              <ICGroupPeople className="w-5 h-5" stroke="#000000" />
             </button>
           </div>
         </div>
       </div>
 
+      {/* 🔥 Filter Buttons - CHỈ hiện khi KHÔNG search */}
+      {!isSearchActive && <MessageFilter filterType={filterType} setFilterType={setFilterType} counts={filterCounts} />}
       {/* Content Area - Chat List hoặc Search Results */}
       <div className="flex-1 overflow-y-auto bg-white">
         {/* Hiển thị khi ĐANG TÌM KIẾM */}
-        {searchTerm.trim() ? (
+        {isSearchActive ? (
           <SearchResults
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -422,12 +429,16 @@ export default function Sidebar({
             }}
           />
         ) : (
-          /* Hiển thị danh sách chat bình thường khi KHÔNG TÌM KIẾM */
+          /* Hiển thị danh sách chat đã lọc */
           <>
-            {sortedChats.length === 0 ? (
-              <div className="p-5 text-center text-gray-400 text-sm">Chưa có cuộc trò chuyện nào.</div>
+            {filteredAndSortedChats.length === 0 ? (
+              <div className="p-5 text-center text-gray-400 text-sm">
+                {filterType === 'unread' && 'Không có tin nhắn chưa đọc'}
+                {filterType === 'read' && 'Không có tin nhắn đã đọc'}
+                {filterType === 'all' && 'Chưa có cuộc trò chuyện nào'}
+              </div>
             ) : (
-              sortedChats.map((item: any) => {
+              filteredAndSortedChats.map((item: any) => {
                 const isGroupItem = item.isGroup === true || Array.isArray(item.members);
                 return (
                   <ChatItem

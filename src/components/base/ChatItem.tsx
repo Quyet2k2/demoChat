@@ -195,7 +195,7 @@ export default function ChatItem({
                 isRecall ? 'italic text-gray-400' : unreadCount > 0 ? 'text-gray-800 font-semibold' : 'text-gray-500'
               }`}
             >
-              <p className="text-xs text-gray-500 truncate">{formatMessagePreview(item.lastMessage)}</p>
+              <p className="text-xs text-gray-500 truncate">{formatMessagePreview(lastMessage)}</p>
             </p>
             {unreadCount > 0 && (
               <div className="flex items-center justify-center min-w-[16px] h-[16px] px-1 bg-red-600 rounded-full">

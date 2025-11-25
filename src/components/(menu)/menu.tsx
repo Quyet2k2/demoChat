@@ -386,7 +386,10 @@ export default function SidebarMenu() {
                 Hủy
               </button>
               <button
-                onClick={handleFinalLogout}
+                onClick={() => {
+                  finalizeLogout(); // Thực hiện hành động
+                  setShowLogoutConfirm(false);
+                }}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
               >
                 Đăng xuất
@@ -406,9 +409,9 @@ export default function SidebarMenu() {
             setUserInfo((prev) =>
               prev
                 ? {
-                    ...prev,
-                    avatar: newUrl,
-                  }
+                  ...prev,
+                  avatar: newUrl,
+                }
                 : prev,
             )
           }

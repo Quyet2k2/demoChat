@@ -298,7 +298,7 @@ export default function ChatWindow({
     if (!contextMenu || !contextMenu.visible) return null;
 
     const { x, y, message: msg } = contextMenu;
-    const isMe = msg.sender === currentUser._id;
+    const isMe = (msg.sender as any)._id === currentUser._id;
     const isText = msg.type === 'text';
     const isRecalled = msg.isRecalled;
     const canCopy = isText && !isRecalled;
@@ -1075,19 +1075,6 @@ export default function ChatWindow({
           />
         </div>
       )}
-
-      {showSearchSidebar && (
-        <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[350px] h-full ">
-          <SearchSidebar
-            isOpen={showSearchSidebar}
-            onClose={() => setShowSearchSidebar(false)}
-            roomId={roomId}
-            onJumpToMessage={handleJumpToMessage}
-            getSenderName={getSenderName}
-          />
-        </div>
-      )}
-
       {showSearchSidebar && (
         <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[350px] h-full ">
           <SearchSidebar

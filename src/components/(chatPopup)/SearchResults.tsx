@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ChatItem as ChatItemType } from '@/types/Group';
 
 interface Message {
   _id: string;
@@ -16,28 +17,42 @@ interface Message {
   fileUrl?: string;
 }
 
+interface MessageGroup {
+  roomId: string;
+  roomName: string;
+  isGroupChat: boolean;
+  messages: Message[];
+}
+
+interface FileGroup {
+  roomId: string;
+  roomName: string;
+  isGroupChat: boolean;
+  files: Message[];
+}
+
 interface SearchResultsProps {
   activeTab: 'all' | 'contacts' | 'messages' | 'files';
   setActiveTab: (tab: 'all' | 'contacts' | 'messages' | 'files') => void;
   isSearching: boolean;
   hasResults: boolean;
-  contacts: any[];
-  groupedMessages: any[];
-  groupedFiles: any[];
+  contacts: ChatItemType[];
+  groupedMessages: MessageGroup[];
+  groupedFiles: FileGroup[];
   fileMessages: Message[];
   searchTerm: string;
-  onSelectContact: (contact: any) => void;
+  onSelectContact: (contact: ChatItemType) => void;
   onNavigateToMessage: (message: Message) => void;
 }
 
 // Component Tabs
 const SearchTabs = ({
-                      activeTab,
-                      setActiveTab,
-                      contactsCount,
-                      messagesCount,
-                      filesCount,
-                    }: {
+  activeTab,
+  setActiveTab,
+  contactsCount,
+  messagesCount,
+  filesCount,
+}: {
   activeTab: 'all' | 'contacts' | 'messages' | 'files';
   setActiveTab: (tab: 'all' | 'contacts' | 'messages' | 'files') => void;
   contactsCount: number;
@@ -45,18 +60,10 @@ const SearchTabs = ({
   filesCount: number;
 }) => {
   const tabs = [
-    { key: 'all' as const,
-      label: 'Tất cả',
-      count: contactsCount + messagesCount },
-    { key: 'contacts' as const,
-      label: 'Liên hệ',
-      count: contactsCount },
-    { key: 'messages' as const,
-      label: 'Tin nhắn',
-      count: messagesCount },
-    { key: 'files' as const,
-      label: 'File',
-      count: filesCount },
+    { key: 'all' as const, label: 'Tất cả', count: contactsCount + messagesCount },
+    { key: 'contacts' as const, label: 'Liên hệ', count: contactsCount },
+    { key: 'messages' as const, label: 'Tin nhắn', count: messagesCount },
+    { key: 'files' as const, label: 'File', count: filesCount },
   ];
 
   return (
@@ -145,13 +152,13 @@ const formatTime = (timestamp: number) => {
 
 // Component Contacts Section
 const ContactsSection = ({
-                           contacts,
-                           searchTerm,
-                           onSelectContact,
-                         }: {
-  contacts: any[];
+  contacts,
+  searchTerm,
+  onSelectContact,
+}: {
+  contacts: ChatItemType[];
   searchTerm: string;
-  onSelectContact: (contact: any) => void;
+  onSelectContact: (contact: ChatItemType) => void;
 }) => {
   if (contacts.length === 0) return null;
 
@@ -162,36 +169,42 @@ const ContactsSection = ({
         Liên hệ ({contacts.length})
       </h4>
       <div className="space-y-1">
-        {contacts.map((contact) => (
-          <div
-            key={contact._id}
-            onClick={() => onSelectContact(contact)}
-            className="flex items-center p-3 rounded-lg hover:bg-blue-50 cursor-pointer transition-all"
-          >
-            <div className="relative flex-shrink-0">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
-                {contact.avatar ? (
-                  <img src={contact.avatar} className="w-full h-full object-cover" alt="" />
-                ) : (
-                  contact.name?.charAt(0).toUpperCase()
+        {contacts.map((contact) => {
+          const isGroupContact = Boolean((contact as any).isGroup);
+
+          return (
+            <div
+              key={contact._id}
+              onClick={() => onSelectContact(contact)}
+              className="flex items-center p-3 rounded-lg hover:bg-blue-50 cursor-pointer transition-all"
+            >
+              <div className="relative flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                  {contact.avatar ? (
+                    <img src={contact.avatar as string} className="w-full h-full object-cover" alt="" />
+                  ) : (
+                    String(contact.name ?? '')
+                      .charAt(0)
+                      .toUpperCase()
+                  )}
+                </div>
+                {isGroupContact && (
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                    </svg>
+                  </div>
                 )}
               </div>
-              {contact.isGroup && (
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
-                  </svg>
-                </div>
-              )}
+              <div className="flex-1 min-w-0 ml-3">
+                <p className="font-medium text-gray-800 truncate text-sm">
+                  <HighlightText text={String(contact.name ?? '')} keyword={searchTerm} />
+                </p>
+                <p className="text-xs text-gray-500">{isGroupContact ? 'Nhóm' : 'Liên hệ'}</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0 ml-3">
-              <p className="font-medium text-gray-800 truncate text-sm">
-                <HighlightText text={contact.name} keyword={searchTerm} />
-              </p>
-              <p className="text-xs text-gray-500">{contact.isGroup ? 'Nhóm' : 'Liên hệ'}</p>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
@@ -199,12 +212,12 @@ const ContactsSection = ({
 
 // Component Messages Section
 const MessagesSection = ({
-                           groupedMessages,
-                           searchTerm,
-                           onNavigateToMessage,
-                           onClearSearch,
-                         }: {
-  groupedMessages: any[];
+  groupedMessages,
+  searchTerm,
+  onNavigateToMessage,
+  onClearSearch,
+}: {
+  groupedMessages: MessageGroup[];
   searchTerm: string;
   onNavigateToMessage: (message: Message) => void;
   onClearSearch: () => void;
@@ -218,7 +231,7 @@ const MessagesSection = ({
         Tin nhắn ({groupedMessages.length} cuộc trò chuyện)
       </h4>
       <div className="space-y-3">
-        {groupedMessages.map((group: any) => (
+        {groupedMessages.map((group: MessageGroup) => (
           <div
             key={group.roomId}
             className="border border-gray-200 rounded-xl overflow-hidden  transition-all bg-white shadow-sm"
@@ -301,13 +314,13 @@ const MessagesSection = ({
 
 // Component Files Section
 const FilesSection = ({
-                        groupedFiles,
-                        fileMessages,
-                        searchTerm,
-                        onNavigateToMessage,
-                        onClearSearch,
-                      }: {
-  groupedFiles: any[];
+  groupedFiles,
+  fileMessages,
+  searchTerm,
+  onNavigateToMessage,
+  onClearSearch,
+}: {
+  groupedFiles: FileGroup[];
   fileMessages: Message[];
   searchTerm: string;
   onNavigateToMessage: (message: Message) => void;
@@ -322,12 +335,12 @@ const FilesSection = ({
         File ({fileMessages.length} file)
       </h4>
       <div className="space-y-3">
-        {groupedFiles.map((group: any) => (
+        {groupedFiles.map((group: FileGroup) => (
           <div
             key={group.roomId}
             className="border border-gray-200 rounded-xl overflow-hidden hover:border-orange-300 transition-all bg-white shadow-sm"
           >
-            <   div className="bg-gradient-to-r from-orange-50 to-white p-3 border-b-[1px] border-gray-300 flex items-center gap-3">
+            <div className="bg-gradient-to-r from-orange-50 to-white p-3 border-b-[1px] border-gray-300 flex items-center gap-3">
               <div className="relative">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold overflow-hidden">
                   {group.roomName.charAt(0).toUpperCase()}
@@ -430,18 +443,18 @@ const FilesSection = ({
 
 // Main SearchResults Component
 export default function SearchResults({
-                                        activeTab,
-                                        setActiveTab,
-                                        isSearching,
-                                        hasResults,
-                                        contacts,
-                                        groupedMessages,
-                                        groupedFiles,
-                                        fileMessages,
-                                        searchTerm,
-                                        onSelectContact,
-                                        onNavigateToMessage,
-                                      }: SearchResultsProps) {
+  activeTab,
+  setActiveTab,
+  isSearching,
+  hasResults,
+  contacts,
+  groupedMessages,
+  groupedFiles,
+  fileMessages,
+  searchTerm,
+  onSelectContact,
+  onNavigateToMessage,
+}: SearchResultsProps) {
   const handleClearSearch = () => {
     // This will be called from parent to reset search
   };

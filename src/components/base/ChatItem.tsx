@@ -186,7 +186,7 @@ export default function ChatItem({
               {name}
             </h4>
 
-            <span className="text-[11px] text-gray-500 flex-shrink-0 flex items-center gap-1">{timeDisplay}</span>
+            <span className="text-[0.6875rem] text-gray-500 flex-shrink-0 flex items-center gap-1">{timeDisplay}</span>
           </div>
 
           <div className="flex justify-between items-center">
@@ -198,8 +198,8 @@ export default function ChatItem({
               <p className="text-xs text-gray-500 truncate">{formatMessagePreview(lastMessage)}</p>
             </p>
             {unreadCount > 0 && (
-              <div className="flex items-center justify-center min-w-[16px] h-[16px] px-1 bg-red-600 rounded-full">
-                <span className="text-[10px] font-bold text-white leading-none">
+              <div className="flex items-center justify-center min-w-[1rem] h-[1rem] px-1 bg-red-600 rounded-full">
+                <span className="text-[0.625rem] font-bold text-white leading-none">
                   {unreadCount > 5 ? '5+' : unreadCount}
                 </span>
               </div>
@@ -219,8 +219,9 @@ export default function ChatItem({
             ref={menuRef}
             style={{
               position: 'fixed', // 🔥 Dùng fixed thay vì absolute
-              top: `${menuPosition.y}px`,
-              left: `${menuPosition.x}px`,
+              // Chuyển vị trí từ px sang rem (giả sử 1rem = 16px)
+              top: `${menuPosition.y / 16}rem`,
+              left: `${menuPosition.x / 16}rem`,
             }}
             className="z-[9999] w-48 bg-white border border-gray-200 rounded-lg shadow-xl py-1 text-sm"
           >

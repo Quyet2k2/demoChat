@@ -3,18 +3,23 @@
 import React, { useRef } from 'react';
 import IconEdit from '@/public/icons/edit.svg';
 import IconClock from '@/public/icons/clock.svg';
-import IconPin from '@/public/icons/pin.svg';
 import IconGroup from '@/public/icons/group.svg';
 import IconGroup1 from '@/public/icons/group1.svg';
 import ArrowRightICon from '@/public/icons/arrow-right-icon.svg';
 import ModalMembers from '../../../components/base/ModalMembers';
-import { ChatItem, GroupConversation, MemberInfo } from '../../../types/Group';
+import { ChatItem, GroupConversation, MemberInfo, GroupRole } from '../../../types/Group';
 import { User } from '../../../types/User';
 import { Message } from '../../../types/Message';
 import { getProxyUrl } from '../../../utils/utils';
 import Image from 'next/image';
 import { useChatInfoPopup } from '@/hooks/useChatInfoPopup';
 import MediaPreviewModal from '@/components/(chatPopup)/MediaPreviewModal';
+import ICPin from '@/components/svg/ICPin';
+import ICEye from '@/components/svg/ICEye';
+import ICPersonPlus from '@/components/svg/ICPersonPlus';
+import ICPeopleGroup from '@/components/svg/ICPeopleGroup';
+import ICOutGroup from '@/components/svg/ICOutGroup';
+import ICLayoutGroup from '@/components/svg/ICLayoutGroup';
 
 interface ChatInfoPopupProps {
   currentUser: User;
@@ -33,6 +38,7 @@ interface ChatInfoPopupProps {
   onRoleChange?: (memberId: string, memberName: string, newRole: 'ADMIN' | 'MEMBER') => void;
   onChatAction: (roomId: string, actionType: 'pin' | 'hide', isChecked: boolean, isGroup: boolean) => void;
   reLoad?: () => void;
+  onLeftGroup?: () => void;
 }
 
 export default function ChatInfoPopup({
@@ -51,17 +57,20 @@ export default function ChatInfoPopup({
   onRoleChange,
   onChatAction,
   reLoad,
+  onLeftGroup,
 }: ChatInfoPopupProps) {
   const popupRef = useRef<HTMLDivElement | null>(null);
   const [openMember, setOpenMember] = React.useState(false);
   const [groupAvatar, setGroupAvatar] = React.useState<string | undefined>(
     isGroup ? (selectedChat as GroupConversation).avatar : undefined,
   );
+  const [isGroupAvatarUploading, setIsGroupAvatarUploading] = React.useState(false);
   const [groupName, setGroupName] = React.useState<string>(chatName || '');
   const [isRenameModalOpen, setIsRenameModalOpen] = React.useState(false);
   const [renameInput, setRenameInput] = React.useState('');
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const [previewMedia, setPreviewMedia] = React.useState<{ url: string; type: 'image' | 'video' } | null>(null);
+  const [confirmAction, setConfirmAction] = React.useState<'leave' | 'disband' | null>(null);
 
 
   const [showLeaveModal, setShowLeaveModal] = React.useState(false);
@@ -76,6 +85,7 @@ export default function ChatInfoPopup({
     if (!file || !isGroup) return;
 
     try {
+      setIsGroupAvatarUploading(true);
       const groupId = (selectedChat as GroupConversation)._id;
       const formData = new FormData();
       formData.append('file', file);
@@ -121,6 +131,8 @@ export default function ChatInfoPopup({
     } catch (error) {
       console.error('Update group avatar error:', error);
       alert('Có lỗi xảy ra khi cập nhật ảnh nhóm.');
+    } finally {
+      setIsGroupAvatarUploading(false);
     }
   };
 
@@ -144,6 +156,19 @@ export default function ChatInfoPopup({
     messages,
     onChatAction,
   });
+
+  // Xác định vai trò của currentUser trong nhóm (OWNER / ADMIN / MEMBER)
+  const myId = String(currentUser._id || (currentUser as unknown as { id?: string })?.id || '');
+  const myMemberInfo = (members || []).find((m) => {
+    const memberId = String((m._id ?? (m as unknown as { id?: string })?.id) || '');
+    return memberId === myId;
+  });
+  const myRole: GroupRole = myMemberInfo?.role || 'MEMBER';
+
+  // Bất kỳ thành viên nhóm nào cũng có thể rời nhóm (kể cả Nhóm trưởng)
+  const canLeaveGroup = isGroup;
+  // Chỉ Nhóm trưởng mới được phép giải tán nhóm
+  const canDisbandGroup = isGroup && myRole === 'OWNER';
 
   const handleRenameGroup = () => {
     if (!isGroup) return;
@@ -191,6 +216,75 @@ export default function ChatInfoPopup({
     } catch (error) {
       console.error('Rename group error:', error);
       alert('Có lỗi xảy ra khi đổi tên nhóm.');
+    }
+  };
+
+  const handleLeaveGroup = async () => {
+    if (!isGroup || !canLeaveGroup) return;
+
+    const groupId = (selectedChat as GroupConversation)._id;
+
+    try {
+      const res = await fetch('/api/groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'leaveGroup',
+          conversationId: groupId,
+          _id: currentUser._id,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json?.success) {
+        alert(json?.error || 'Rời nhóm thất bại, vui lòng thử lại.');
+        return;
+      }
+
+      if (reLoad) {
+        reLoad();
+      }
+
+      if (onLeftGroup) {
+        onLeftGroup();
+      }
+
+      onClose();
+    } catch (error) {
+      console.error('Leave group error:', error);
+      alert('Có lỗi xảy ra khi rời nhóm.');
+    }
+  };
+
+  const handleDisbandGroup = async () => {
+    if (!isGroup || !canDisbandGroup) return;
+
+    const groupId = (selectedChat as GroupConversation)._id;
+
+    try {
+      const res = await fetch('/api/groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'disbandGroup',
+          conversationId: groupId,
+          _id: currentUser._id,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json?.success) {
+        alert(json?.error || 'Giải tán nhóm thất bại, vui lòng thử lại.');
+        return;
+      }
+
+      if (reLoad) {
+        reLoad();
+      }
+      onClose();
+    } catch (error) {
+      console.error('Disband group error:', error);
+      alert('Có lỗi xảy ra khi giải tán nhóm.');
     }
   };
 
@@ -264,10 +358,9 @@ export default function ChatInfoPopup({
   };
 
   return (
-    // <div className="fixed  inset-0 z-10 flex justify-end ">
     <div
       ref={popupRef}
-      className="bg-white shadow-lg w-full sm:w-[350px] flex flex-col h-full overflow-y-auto relative"
+      className="bg-white shadow-lg w-full sm:w-[21.875rem] flex flex-col h-full overflow-y-auto relative"
     >
       {/* Header */}
       <div className="p-4 border-b-gray-200 border-b-[1px] flex justify-between items-center">
@@ -315,8 +408,18 @@ export default function ChatInfoPopup({
                   ) : (
                     <span>{(groupName || 'G').charAt(0).toUpperCase()}</span>
                   )}
-                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs font-medium">
-                    Đổi ảnh
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center text-xs font-medium text-white transition-opacity
+                    ${isGroupAvatarUploading ? 'bg-black/50 opacity-100' : 'bg-black/30 opacity-0 group-hover:opacity-100'}`}
+                  >
+                    {isGroupAvatarUploading ? (
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="h-4 w-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+                        <span>Đang cập nhật...</span>
+                      </div>
+                    ) : (
+                      'Đổi ảnh'
+                    )}
                   </div>
                 </div>
                 <input
@@ -354,7 +457,10 @@ export default function ChatInfoPopup({
                 }`}
                 onClick={() => handleChatActionClick('pin')}
               >
-                <Image src={IconPin} alt="pin" width={20} height={20} className={localIsPinned ? 'rotate-45' : ''} />
+                <ICPin
+                  className={`w-5 h-5 ${localIsPinned ? 'text-yellow-600' : 'text-gray-700'}`}
+                  stroke={localIsPinned ? '#FFD700' : '#1C274C'}
+                />
               </div>
               <p
                 className={`mt-2 text-xs text-center ${localIsPinned ? 'text-yellow-700 font-medium' : 'text-gray-700'}`}
@@ -371,14 +477,10 @@ export default function ChatInfoPopup({
                 }`}
                 onClick={() => handleChatActionClick('hide')}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                  <path d="M12 9a3 3 0 00-3 3.75h6A3 3 0 0012 9z" />
-                  <path
-                    fillRule="evenodd"
-                    d="M18.75 3a.75.75 0 00-.75.75v.5a.75.75 0 001.5 0v-.5A.75.75 0 0018.75 3zM12 2.25c-5.11 0-9.352 3.69-10.158 8.442a.75.75 0 000 1.516C2.648 18.06 6.89 21.75 12 21.75c5.11 0 9.352-3.69 10.158-8.442a.75.75 0 000-1.516C21.352 5.94 17.11 2.25 12 2.25zM4.755 12a7.5 7.5 0 0114.49 0 7.5 7.5 0 01-14.49 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <ICEye
+                  className={`w-5 h-5 ${localIsHidden ? 'text-red-600' : 'text-gray-700'}`}
+                  stroke={localIsHidden ? '#FF0000' : '#1C274C'}
+                />
               </div>
               <p className={`mt-2 text-xs text-center ${localIsHidden ? 'text-red-600 font-medium' : 'text-gray-700'}`}>
                 {localIsHidden ? 'Hiện Trò Chuyện' : 'Ẩn Trò Chuyện'}
@@ -395,12 +497,43 @@ export default function ChatInfoPopup({
                 className="text-xs text-gray-700 break-words text-center cursor-pointer flex flex-col items-center w-20"
               >
                 <div className="bg-gray-200 rounded-full w-8 h-8 flex justify-center items-center cursor-pointer mb-2">
-                  <Image src={IconGroup} alt="group" width={20} height={20} />
+                  <ICPeopleGroup className="w-5 h-5" stroke="#1C274C" />
                 </div>
                 Tạo nhóm trò chuyện
               </div>
             </div>
           </div>
+
+          {/* Nhóm hành động: Rời nhóm / Giải tán nhóm */}
+          {isGroup && (
+            <div className="mt-4 flex justify-center gap-8 items-start text-center border-t border-gray-100 pt-4 px-4">
+              {canLeaveGroup && (
+                <button
+                  type="button"
+                  onClick={() => setConfirmAction('leave')}
+                  className="flex cursor-pointer flex-col items-center text-xs text-gray-700 hover:text-red-600 transition-colors"
+                >
+                  <div className="rounded-full w-8 h-8 flex justify-center items-center bg-gray-200 hover:bg-red-100 text-red-500 mb-1 transition-colors">
+                    <ICOutGroup className="w-5 h-5" />
+                  </div>
+                  <span>Rời nhóm</span>
+                </button>
+              )}
+
+              {canDisbandGroup && (
+                <button
+                  type="button"
+                  onClick={() => setConfirmAction('disband')}
+                  className="flex cursor-pointer flex-col items-center text-xs text-gray-700 hover:text-red-700 transition-colors"
+                >
+                  <div className="rounded-full w-8 h-8 flex justify-center items-center bg-gray-200 hover:bg-red-100 text-red-600 mb-1 transition-colors">
+                    <ICLayoutGroup className="w-5 h-5" />
+                  </div>
+                  <span>Giải tán nhóm</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Thành viên nhóm (Giữ nguyên) */}
@@ -413,8 +546,8 @@ export default function ChatInfoPopup({
                 onClick={() => setOpenMember(true)}
               >
                 <h1 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{groupName}</h1>
-                <p className="text-xs text-gray-500 flex gap-2">
-                  <Image src={IconGroup1} alt="" width={25} height={25} />
+                <p className="text-xs text-gray-500 flex gap-2 items-center">
+                  <ICPeopleGroup className="w-5 h-5" />
                   {isGroup ? `${(selectedChat as GroupConversation).members.length} thành viên` : 'Đang hoạt động'}
                 </p>
               </div>
@@ -573,7 +706,9 @@ export default function ChatInfoPopup({
                           <span className="text-sm font-medium text-gray-700 truncate group-hover:text-blue-600">
                             {file.fileName}
                           </span>
-                          <span className="text-[10px] text-gray-400 uppercase">{file.fileName.split('.').pop()}</span>
+                          <span className="text-[0.625rem] text-gray-400 uppercase">
+                            {file.fileName.split('.').pop()}
+                          </span>
                         </div>
 
                         {/* 🔥 Nút "..." cho File */}
@@ -653,7 +788,7 @@ export default function ChatInfoPopup({
                             <span className="text-sm font-medium text-blue-600 truncate break-all group-hover:underline">
                               {link.url}
                             </span>
-                            <span className="text-[10px] text-gray-400">
+                            <span className="text-[0.625rem] text-gray-400">
                               {(() => {
                                 try {
                                   return new URL(href).hostname;
@@ -759,12 +894,62 @@ export default function ChatInfoPopup({
         </div>
       )}
 
+      {confirmAction && isGroup && (
+        <div className="fixed inset-0 z-[9600] flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-xl w-[90%] max-w-sm p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              {confirmAction === 'leave' ? 'Rời nhóm chat' : 'Giải tán nhóm chat'}
+            </h3>
+            <p className="text-xs text-gray-500 mb-4">
+              {confirmAction === 'leave'
+                ? 'Bạn sẽ rời khỏi nhóm này và không nhận được tin nhắn mới. Bạn có chắc chắn muốn tiếp tục?'
+                : 'Tất cả thành viên sẽ bị xóa khỏi nhóm và lịch sử chat có thể bị xóa. Hành động này không thể hoàn tác.'}
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                className="px-3 cursor-pointer py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
+                onClick={() => setConfirmAction(null)}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                className={`px-3 cursor-pointer py-1.5 text-sm rounded-md text-white hover:opacity-90 ${
+                  confirmAction === 'leave' ? 'bg-red-500' : 'bg-red-600'
+                }`}
+                onClick={() => {
+                  if (confirmAction === 'leave') {
+                    void handleLeaveGroup();
+                  } else {
+                    void handleDisbandGroup();
+                  }
+                  setConfirmAction(null);
+                }}
+              >
+                {confirmAction === 'leave' ? 'Rời nhóm' : 'Giải tán nhóm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <MediaPreviewModal
         media={previewMedia}
         chatName={chatName}
         isGroup={isGroup}
         onClose={() => setPreviewMedia(null)}
       />
+
+      {/* Popup loading khi cập nhật ảnh nhóm */}
+      {isGroupAvatarUploading && (
+        <div className="fixed inset-0 z-[9700] flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl px-4 py-3 shadow-xl flex items-center gap-3">
+            <div className="h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm font-medium text-gray-700">Đang cập nhật ảnh nhóm...</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

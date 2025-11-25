@@ -1,5 +1,6 @@
 import React from 'react';
 import IconTK from '@/public/icons/tick.svg';
+import Image from 'next/image';
 
 type CheckboxItemProps = {
   _id: string;
@@ -24,7 +25,7 @@ const CheckboxItem = ({ _id, label, checked = true, onChange }: CheckboxItemProp
           peer-checked:border-blue-600 peer-checked:bg-blue-600 transition
         "
       >
-        <img src={IconTK.src} alt="Tick" className="w-4 h-4 sm:w-5 sm:h-5" />
+        <Image alt="Tick" width={20} height={20} src={IconTK.src} className="w-4 h-4 sm:w-5 sm:h-5" />
       </div>
       <label
         htmlFor={_id}

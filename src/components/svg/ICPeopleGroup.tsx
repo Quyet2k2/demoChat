@@ -18,12 +18,12 @@ const ICPeopleGroup = ({ className, stroke }: { className?: string; stroke?: str
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <circle cx="12" cy="5" r="3" stroke={stroke || '#000000'} stroke-width="2" />
-        <circle cx="4" cy="9" r="2" stroke={stroke || '#000000'} stroke-width="2" />
-        <circle cx="20" cy="9" r="2" stroke={stroke || '#000000'} stroke-width="2" />
+        <circle cx="12" cy="5" r="3" fill={stroke || '#000000'} strokeWidth="2" />
+        <circle cx="4" cy="9" r="2" fill={stroke || '#000000'} strokeWidth="2" />
+        <circle cx="20" cy="9" r="2" fill={stroke || '#000000'} strokeWidth="2" />
         <path
           d="M4 14H3.69425C2.71658 14 1.8822 14.7068 1.72147 15.6712L1.38813 17.6712C1.18496 18.8903 2.12504 20 3.36092 20H7"
-          stroke={stroke || '#000000'}
+          fill={stroke || '#000000'}
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"

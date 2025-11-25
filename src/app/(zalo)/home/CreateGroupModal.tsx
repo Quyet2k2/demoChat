@@ -7,6 +7,7 @@ import { User } from '../../../types/User';
 import { GroupConversation } from '@/types/Group';
 import { useCreateGroupModal } from '@/hooks/useCreateGroupModal';
 import { getProxyUrl } from '@/utils/utils';
+import ICClose from '@/components/svg/ICClose';
 
 interface Props {
   currentUser: User;
@@ -67,7 +68,7 @@ export default function CreateGroupModal({
 
   return (
     // 1. Lớp phủ ngoài cùng
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] py-1">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[0.125rem] py-1">
       <div className="bg-white w-full h-full sm:h-auto sm:max-w-2xl sm:rounded-2xl shadow-2xl animate-fade-in-up flex flex-col max-h-[90vh] overflow-hidden">
         {/* --- HEADER (Cố định) kiểu Zalo --- */}
         <div className="flex-none flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
@@ -76,18 +77,9 @@ export default function CreateGroupModal({
           </h3>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-white/15 transition-colors flex items-center justify-center"
+            className="p-1.5 cursor-pointer rounded-full hover:bg-white/15 transition-colors flex items-center justify-center"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-5 h-5 sm:w-6 sm:h-6"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <ICClose className="w-5 h-5" stroke="#ffffff" />
           </button>
         </div>
 
@@ -134,7 +126,7 @@ export default function CreateGroupModal({
                       key={user._id}
                       className="flex items-center gap-1 px-2 py-1 bg-gray-50 border border-gray-200 rounded-full flex-shrink-0"
                     >
-                      <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-[11px] font-semibold text-white bg-gradient-to-br from-blue-500 to-blue-600">
+                      <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center text-[0.6875rem] font-semibold text-white bg-gradient-to-br from-blue-500 to-blue-600">
                         {user.avatar ? (
                           <Image
                             src={getProxyUrl(user.avatar)}
@@ -147,7 +139,7 @@ export default function CreateGroupModal({
                           user.name?.charAt(0).toUpperCase()
                         )}
                       </div>
-                      <span className="text-xs font-medium text-gray-700 max-w-[90px] truncate">{user.name}</span>
+                      <span className="text-xs font-medium text-gray-700 max-w-[5.625rem] truncate">{user.name}</span>
                     </div>
                   ))}
                   {selectedUsers.length > 8 && (
@@ -178,7 +170,7 @@ export default function CreateGroupModal({
             {sortedGroupKeys.map((letter) => (
               <div key={letter} className="mb-2">
                 <div className="sticky top-0 z-0 mb-2">
-                  <span className="inline-flex items-center justify-center text-[11px] font-medium text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
+                  <span className="inline-flex items-center justify-center text-[0.6875rem] font-medium text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
                     {letter}
                   </span>
                 </div>
@@ -264,14 +256,14 @@ export default function CreateGroupModal({
         <div className="flex-none p-4 bg-white border-t border-gray-200 flex gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
           <button
             onClick={onClose}
-            className="flex-1 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+            className="flex-1 cursor-pointer py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
           >
             Hủy
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className={`flex-1 py-3 text-sm font-semibold text-white rounded-xl transition-all shadow-lg shadow-blue-200
+            className={`flex-1 cursor-pointer py-3 text-sm font-semibold text-white rounded-xl transition-all shadow-lg shadow-blue-200
                             ${loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700 active:scale-95'}`}
           >
             {loading

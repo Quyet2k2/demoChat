@@ -57,7 +57,6 @@ export default function SidebarMenu() {
     setShowLogoutConfirm(true);
   };
 
-  // Hàm thực hiện hành động cuối cùng
   const finalizeLogout = async () => {
     try {
       // Gọi API logout để xoá cookie HttpOnly `session_token` trên server
@@ -134,7 +133,7 @@ export default function SidebarMenu() {
         <div className="mb-6 relative" ref={settingsRef}>
           <button
             onClick={() => setShowSettings((prev) => !prev)}
-            className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/60 hover:border-yellow-300 transition-colors bg-white/10 flex items-center justify-center"
+            className="cursor-pointer w-10 h-10 rounded-full overflow-hidden border-2 border-white/60 hover:border-yellow-300 transition-colors bg-white/10 flex items-center justify-center"
           >
             {userInfo?.avatar ? (
               // Avatar thật từ thông tin user (qua proxy để load đúng ảnh từ Mega)
@@ -409,9 +408,9 @@ export default function SidebarMenu() {
             setUserInfo((prev) =>
               prev
                 ? {
-                  ...prev,
-                  avatar: newUrl,
-                }
+                    ...prev,
+                    avatar: newUrl,
+                  }
                 : prev,
             )
           }

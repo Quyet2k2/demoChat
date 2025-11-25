@@ -129,7 +129,7 @@ const PopupProfile: React.FC<PopupProfileProps> = ({ isOpen, onClose, user, onAv
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100"
+        className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 relative"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -160,7 +160,7 @@ const PopupProfile: React.FC<PopupProfileProps> = ({ isOpen, onClose, user, onAv
               type="button"
               onClick={handleAvatarClick}
               disabled={isUploading}
-              className="group relative w-20 h-20 rounded-full border-[3px] border-white shadow-lg overflow-hidden bg-blue-200 flex items-center justify-center text-white text-2xl font-semibold focus:outline-none focus:ring-2 focus:ring-white/80"
+              className="group relative w-20 h-20 rounded-full border-[0.1875rem] border-white shadow-lg overflow-hidden bg-blue-200 flex items-center justify-center text-white text-2xl font-semibold focus:outline-none focus:ring-2 focus:ring-white/80"
             >
               {user.avatar ? (
                 <img
@@ -176,7 +176,7 @@ const PopupProfile: React.FC<PopupProfileProps> = ({ isOpen, onClose, user, onAv
               )}
 
               {/* Overlay đổi ảnh */}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-[11px] font-medium transition text-white">
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-[0.6875rem] font-medium transition text-white">
                 {isUploading ? 'Đang cập nhật...' : 'Đổi ảnh đại diện'}
               </div>
             </button>
@@ -257,6 +257,16 @@ const PopupProfile: React.FC<PopupProfileProps> = ({ isOpen, onClose, user, onAv
             </button>
           </div>
         </div>
+
+        {/* Popup loading khi đang cập nhật avatar */}
+        {isUploading && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-xl px-4 py-3 shadow-xl flex items-center gap-3">
+              <div className="h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sm font-medium text-gray-700">Đang cập nhật ảnh đại diện...</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

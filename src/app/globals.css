@@ -14,9 +14,22 @@
 .animate-showModal {
   animation: showModal 0.3s ease-out forwards;
 }
+html {
+  font-size: 1vw;
+}
 
 @media (max-width: 639px) {
   html {
     font-size: 4.267vw;
   }
+}
+
+/* Ẩn scrollbar (giữ cuộn bằng cảm ứng/chuột) cho khu vực chat giống Zalo */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE và Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
 }

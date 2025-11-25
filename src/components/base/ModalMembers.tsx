@@ -170,13 +170,13 @@ export default function GroupMembersModal({
   const RoleBadge = ({ role }: { role: GroupRole }) => {
     if (role === 'OWNER')
       return (
-        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">
+        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[0.625rem] font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">
           👑 Trưởng nhóm
         </span>
       );
     if (role === 'ADMIN')
       return (
-        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[0.625rem] font-bold bg-blue-100 text-blue-800 border border-blue-200">
           🛡️ Phó nhóm
         </span>
       );
@@ -196,7 +196,9 @@ export default function GroupMembersModal({
             <div className="min-w-0">
               <p className="text-sm font-semibold text-gray-800 truncate">Thành viên nhóm</p>
               {groupName && (
-                <p className="text-xs text-gray-500 font-medium truncate max-w-[220px] sm:max-w-[260px]">{groupName}</p>
+                <p className="text-xs text-gray-500 font-medium truncate max-w-[13.75rem] sm:max-w-[16.25rem]">
+                  {groupName}
+                </p>
               )}
             </div>
           </div>
@@ -242,9 +244,9 @@ export default function GroupMembersModal({
 
           {/* Member List */}
           <div className="flex-1 overflow-y-auto p-3 sm:p-4 custom-scrollbar bg-gray-50/60">
-            <h4 className="font-semibold text-[11px] text-gray-500 mb-3 uppercase tracking-wider flex justify-between items-center">
+            <h4 className="font-semibold text-[0.6875rem] text-gray-500 mb-3 uppercase tracking-wider flex justify-between items-center">
               <span>Danh sách</span>
-              <span className="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-[11px]">
+              <span className="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-[0.6875rem]">
                 {searchUser.length} thành viên
               </span>
             </h4>
@@ -286,7 +288,7 @@ export default function GroupMembersModal({
                       <div className="flex items-center flex-wrap gap-1">
                         <p className="text-sm font-bold text-gray-900 truncate">{member.name}</p>
                         {isMe && (
-                          <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-1.5 rounded">
+                          <span className="text-[0.625rem] font-medium text-gray-400 bg-gray-100 px-1.5 rounded">
                             (Bạn)
                           </span>
                         )}

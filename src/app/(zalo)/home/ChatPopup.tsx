@@ -786,30 +786,26 @@ export default function ChatWindow({
     });
 
     // 🔥 LISTENER CHO MESSAGE_EDITED
-    socketRef.current.on('message_edited', (data: {
-      _id: string;
-      roomId: string;
-      content: string;
-      editedAt: number;
-      originalContent?: string;
-    }) => {
-
-      if (data.roomId === roomId) {
-        setMessages((prevMessages) => {
-          const updated = prevMessages.map((msg) =>
-            msg._id === data._id
-              ? {
-                ...msg,
-                content: data.content,
-                editedAt: data.editedAt,
-                originalContent: data.originalContent || msg.originalContent || msg.content
-              }
-              : msg
-          );
-          return updated;
-        });
-      }
-    });
+    socketRef.current.on(
+      'message_edited',
+      (data: { _id: string; roomId: string; content: string; editedAt: number; originalContent?: string }) => {
+        if (data.roomId === roomId) {
+          setMessages((prevMessages) => {
+            const updated = prevMessages.map((msg) =>
+              msg._id === data._id
+                ? {
+                    ...msg,
+                    content: data.content,
+                    editedAt: data.editedAt,
+                    originalContent: data.originalContent || msg.originalContent || msg.content,
+                  }
+                : msg,
+            );
+            return updated;
+          });
+        }
+      },
+    );
 
     socketRef.current.on('message_recalled', (data: { _id: string; roomId: string }) => {
       if (data.roomId === roomId) {
@@ -1022,7 +1018,7 @@ export default function ChatWindow({
   const handleSaveEdit = async (messageId: string, newContent: string) => {
     if (!newContent.trim()) return;
 
-    const originalMessage = messages.find(m => m._id === messageId);
+    const originalMessage = messages.find((m) => m._id === messageId);
     if (!originalMessage) return;
 
     const editedAtTimestamp = Date.now();
@@ -1031,11 +1027,13 @@ export default function ChatWindow({
     console.log('🟢 [CLIENT] Starting edit:', { messageId, newContent, roomId });
 
     // 1. Optimistic Update
-    setMessages(prev => prev.map(m =>
-      m._id === messageId
-        ? { ...m, content: newContent, editedAt: editedAtTimestamp, originalContent: originalContentText }
-        : m
-    ));
+    setMessages((prev) =>
+      prev.map((m) =>
+        m._id === messageId
+          ? { ...m, content: newContent, editedAt: editedAtTimestamp, originalContent: originalContentText }
+          : m,
+      ),
+    );
     setEditingMessageId(null);
 
     // 2. Gọi API Backend
@@ -1067,19 +1065,16 @@ export default function ChatWindow({
 
       console.log('🚀 [CLIENT] Emitting edit_message:', socketData);
       socketRef.current?.emit('edit_message', socketData);
-
     } catch (e) {
-      console.error("❌ [CLIENT] Chỉnh sửa thất bại:", e);
-      alert("Lỗi khi lưu chỉnh sửa.");
-      setMessages(prev => prev.map(m =>
-        m._id === messageId ? originalMessage : m
-      ));
+      console.error('❌ [CLIENT] Chỉnh sửa thất bại:', e);
+      alert('Lỗi khi lưu chỉnh sửa.');
+      setMessages((prev) => prev.map((m) => (m._id === messageId ? originalMessage : m)));
     }
   };
   return (
-    <main className="flex h-full bg-gray-700">
+    <main className="flex h-full bg-gray-700 sm:overflow-y-hidden overflow-y-auto no-scrollbar">
       <div
-        className={`flex flex-col h-full bg-gray-200 transition-all duration-300 ${showPopup ? 'sm:w-[calc(100%-350px)]' : 'w-full'} border-r border-gray-200`}
+        className={`flex flex-col h-full  bg-gray-200 transition-all duration-300 ${showPopup ? 'sm:w-[calc(100%-21.875rem)]' : 'w-full'} border-r border-gray-200`}
       >
         <ChatHeader
           chatName={chatName}
@@ -1197,7 +1192,7 @@ export default function ChatWindow({
       </div>
 
       {showPopup && (
-        <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[350px] h-full ">
+        <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[21.875rem] h-full ">
           <ChatInfoPopup
             messages={messages}
             chatName={chatName}
@@ -1214,11 +1209,12 @@ export default function ChatWindow({
             onJumpToMessage={handleJumpToMessage}
             onChatAction={onChatAction}
             reLoad={reLoad}
+            onLeftGroup={onBackFromChat}
           />
         </div>
       )}
       {showSearchSidebar && (
-        <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[350px] h-full ">
+        <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[21.875rem] h-full ">
           <SearchSidebar
             isOpen={showSearchSidebar}
             onClose={() => setShowSearchSidebar(false)}

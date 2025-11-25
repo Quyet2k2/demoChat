@@ -700,10 +700,10 @@ export default function GlobalSearchModal({
         </div>
 
         {/* Footer */}
-        <div className="flex-none px-4 py-3 bg-[#f7f9fc] border-t text-[11px] text-gray-500 flex items-center justify-between">
+        <div className="flex-none px-4 py-3 bg-[#f7f9fc] border-t text-[0.6875rem] text-gray-500 flex items-center justify-between">
           <span>
             Nhấn{' '}
-            <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded shadow-sm font-mono text-[10px]">
+            <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded shadow-sm font-mono text-[0.625rem]">
               ESC
             </kbd>{' '}
             để đóng cửa sổ

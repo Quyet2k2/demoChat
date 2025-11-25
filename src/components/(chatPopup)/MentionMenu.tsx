@@ -31,7 +31,7 @@ export default function MentionMenu({
       className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-2xl border border-gray-200 max-h-60 overflow-y-auto z-50"
     >
       <div className="p-2 border-b bg-gray-50">
-        <p className="text-xs text-gray-600 font-medium">Chọn người để mention</p>
+        <p className="text-xs text-gray-600 font-medium">Chọn người để đề cập</p>
       </div>
       {mentionSuggestions.map((user, index) => {
         const member = user as MemberInfo;

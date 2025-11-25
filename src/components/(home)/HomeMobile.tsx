@@ -23,6 +23,7 @@ interface HomeMobileProps {
   onScrollComplete: () => void;
   fetchAllData: () => Promise<void> | void;
   onShowGlobalSearch: () => void;
+  onNavigateToMessage: (message: any) => void;
 }
 
 export default function HomeMobile({
@@ -40,6 +41,7 @@ export default function HomeMobile({
   onScrollComplete,
   fetchAllData,
   onShowGlobalSearch,
+  onNavigateToMessage,
 }: HomeMobileProps) {
   return (
     <div className="block md:hidden relative w-full h-full">
@@ -73,7 +75,7 @@ export default function HomeMobile({
           selectedChat={selectedChat}
           onSelectChat={onSelectChat}
           onChatAction={onChatAction}
-          onShowGlobalSearch={onShowGlobalSearch}
+          onNavigateToMessage={onNavigateToMessage}
         />
       )}
     </div>

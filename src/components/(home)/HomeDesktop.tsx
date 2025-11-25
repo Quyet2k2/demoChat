@@ -39,7 +39,7 @@ export default function HomeDesktop({
   onScrollComplete,
   fetchAllData,
   onShowGlobalSearch,
-                                      onNavigateToMessage
+  onNavigateToMessage,
 }: HomeDesktopProps) {
   return (
     <div className="hidden md:flex h-screen w-full">
@@ -53,7 +53,6 @@ export default function HomeDesktop({
         selectedChat={selectedChat}
         onSelectChat={onSelectChat}
         onChatAction={onChatAction}
-        onShowGlobalSearch={onShowGlobalSearch}
         onNavigateToMessage={onNavigateToMessage}
       />
 

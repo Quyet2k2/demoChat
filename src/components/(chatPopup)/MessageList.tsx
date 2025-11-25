@@ -176,11 +176,11 @@ export default function MessageList({
                   )}
 
                   <div
-                    className={`p-2 rounded-lg shadow-sm w-[19rem]
-                      ${isMe ? 'bg-blue-100 text-black' : 'bg-white text-black'}
-                      ${(msg.type === 'sticker' && !isRecalled) || isVideoFile(msg.fileUrl) ? '!bg-transparent !shadow-none !p-0' : ''} 
-                      ${!isGrouped ? (isMe ? 'rounded-br-none' : 'rounded-bl-none') : ''}
-                      ${isRecalled ? '!bg-gray-200 !text-gray-500 italic border border-gray-300' : ''}
+                    className={`p-2 rounded-lg shadow-sm max-w-xs w-fit /
+                        ${isMe ? 'bg-blue-100 text-black ml-auto' : 'bg-white text-black mr-auto'} // ⬅️ LƯU Ý: Đã có 'ml-auto' hoặc 'mr-auto' trong container bên ngoài (Nếu isMe)
+                        ${(msg.type === 'sticker' && !isRecalled) || isVideoFile(msg.fileUrl) ? '!bg-transparent !shadow-none !p-0' : ''}
+                        ${!isGrouped ? (isMe ? 'rounded-br-none' : 'rounded-bl-none') : ''}
+                        ${isRecalled ? '!bg-gray-200 !text-gray-500 italic border border-gray-300' : ''}
                     `}
                   >
                     {isGroup && !isMe && !isGrouped && !isRecalled && (
@@ -263,6 +263,13 @@ export default function MessageList({
                         )}
                       </>
                     )}
+                    <p className={`text-[10px] text-gray-500 mt-0.5 ${isMe ? 'text-right' : 'text-left'}`}>
+                      {/* Kiểm tra và định dạng thời gian */}
+                      {new Date(msg.timestamp).toLocaleTimeString('vi-VN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
                   </div>
                 </div>
               </div>

@@ -72,6 +72,7 @@ export default function HomePage() {
         onScrollComplete={() => setScrollToMessageId(null)}
         fetchAllData={fetchAllData}
         onShowGlobalSearch={handleOpenGlobalSearch}
+        onNavigateToMessage={handleNavigateToMessage}
       />
 
       <HomeOverlays

@@ -307,7 +307,8 @@ export default function ChatWindow({
     if (!contextMenu || !contextMenu.visible) return null;
 
     const { x, y, message: msg } = contextMenu;
-    const isMe = (msg.sender as any)._id === currentUser._id;
+    // sender trong Message là userId (string), dùng helper getId để so sánh an toàn
+    const isMe = getId(msg.sender) === currentUser._id;
     const isText = msg.type === 'text';
     const isRecalled = msg.isRecalled;
     const canCopy = isText && !isRecalled;
@@ -971,9 +972,9 @@ export default function ChatWindow({
   if (!selectedChat) return null;
 
   return (
-    <main className="flex h-full bg-gray-700">
+    <main className="flex h-full bg-gray-700 sm:overflow-y-hidden overflow-y-auto no-scrollbar">
       <div
-        className={`flex flex-col h-full bg-gray-200 transition-all duration-300 ${showPopup ? 'sm:w-[calc(100%-350px)]' : 'w-full'} border-r border-gray-200`}
+        className={`flex flex-col h-full  bg-gray-200 transition-all duration-300 ${showPopup ? 'sm:w-[calc(100%-21.875rem)]' : 'w-full'} border-r border-gray-200`}
       >
         <ChatHeader
           chatName={chatName}
@@ -1086,7 +1087,7 @@ export default function ChatWindow({
       </div>
 
       {showPopup && (
-        <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[350px] h-full ">
+        <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[21.875rem] h-full ">
           <ChatInfoPopup
             messages={messages}
             chatName={chatName}
@@ -1103,11 +1104,12 @@ export default function ChatWindow({
             onJumpToMessage={handleJumpToMessage}
             onChatAction={onChatAction}
             reLoad={reLoad}
+            onLeftGroup={onBackFromChat}
           />
         </div>
       )}
       {showSearchSidebar && (
-        <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[350px] h-full ">
+        <div className="fixed inset-0 sm:static sm:inset-auto sm:w-[21.875rem] h-full ">
           <SearchSidebar
             isOpen={showSearchSidebar}
             onClose={() => setShowSearchSidebar(false)}

@@ -50,7 +50,7 @@ export default function MessageList({
         <React.Fragment key={dateKey}>
           {/* Thanh hiển thị Ngày (Sticky ở trên) */}
           <div className="flex justify-center my-3 sticky top-0 z-10">
-            <span className="text-xs text-gray-600 bg-gray-200/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
+            <span className="text-[0.625rem] sm:text-xs text-gray-600 bg-gray-200/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm">
               {dateKey}
             </span>
           </div>
@@ -78,7 +78,7 @@ export default function MessageList({
               return (
                 <div key={index} className="flex justify-center my-3">
                   <div className="bg-gray-100 px-3 py-1 rounded-full shadow-sm">
-                    <p className="text-xs text-gray-500 font-medium">{contentDisplay}</p>
+                    <p className="text-xs text-gray-500 sm:font-medium text-[0.5rem]">{contentDisplay}</p>
                   </div>
                 </div>
               );
@@ -150,7 +150,7 @@ export default function MessageList({
                         alt={senderInfo.name}
                         width={40}
                         height={40}
-                        className="w-10 h-10 rounded-full object-cover"
+                        className="w-6 h-6 sm:w-10 sm:h-10 rounded-full object-cover"
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center font-bold text-sm">
@@ -179,19 +179,20 @@ export default function MessageList({
                   )}
 
                   <div
-                    className={`p-2 rounded-lg shadow-sm max-w-xs w-fit /
+                    className={`p-2 rounded-lg shadow-sm max-w-[12rem] w-fit sm:max-w-xs /
                         ${isMe ? 'bg-blue-100 text-black ml-auto' : 'bg-white text-black mr-auto'} // ⬅️ LƯU Ý: Đã có 'ml-auto' hoặc 'mr-auto' trong container bên ngoài (Nếu isMe)
                         ${(msg.type === 'sticker' && !isRecalled) || isVideoFile(msg.fileUrl) ? '!bg-transparent !shadow-none !p-0' : ''}
                         ${!isGrouped ? (isMe ? 'rounded-br-none' : 'rounded-bl-none') : ''}
                         ${isRecalled ? '!bg-gray-200 !text-gray-500 italic border border-gray-300' : ''}
+                        ${msg.type === 'text' ? 'text-[0.625rem] sm:text-[0.75rem]' : ''}
                     `}
                   >
                     {isGroup && !isMe && !isGrouped && !isRecalled && (
-                      <p className="text-gray-500 text-[10px] pb-1 font-medium">{senderName}</p>
+                      <p className="text-gray-500 text-[0.625rem] pb-1 font-medium">{senderName}</p>
                     )}
 
                     {isRecalled ? (
-                      <p className="text-sm text-gray-500">Tin nhắn đã bị thu hồi</p>
+                      <p className="text-[0.75rem] sm:text-sm text-gray-500">Tin nhắn đã bị thu hồi</p>
                     ) : (
                       <>
                         {msg.type === 'text' && (
@@ -243,34 +244,37 @@ export default function MessageList({
                             href={msg.fileUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="flex items-center space-x-3 bg-gray-50 p-2 rounded border border-gray-200 hover:bg-gray-100"
+                            className="flex items-center w-full sm:w-auto space-x-1 sm:space-x-3 bg-gray-50 p-2 rounded border border-gray-200 hover:bg-gray-100"
                           >
-                            <div className="w-10 h-10 flex items-center justify-center bg-blue-100 rounded-full text-blue-500">
+                            <div className="w-5 h-5 sm:w-10 sm:h-10 flex items-center justify-center bg-blue-100 rounded-full text-blue-500">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 viewBox="0 0 20 20"
                                 fill="currentColor"
-                                className="w-5 h-5"
+                                className="w-4 h-4 sm:w-5 sm:h -5"
                               >
                                 <path d="M8 2a2 2 0 00-2 2v3h2V4h4v12H8v-3H6v3a2 2 0 002 2h4a2 2 0 002-2V4a2 2 0 00-2-2H8z" />
                                 <path d="M5 9l-3 3 3 3v-2h4v-2H5V9z" />
                               </svg>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium text-gray-800 truncate">
+                              <p className="text-xs sm:font-medium text-[0.5rem] text-gray-800 truncate">
                                 {msg.fileName || 'Tập tin đính kèm'}
                               </p>
-                              <p className="text-[10px] text-gray-500 truncate">{msg.fileUrl}</p>
+                              <p className="text-[0.625rem] sm:text-[0.75rem] text-gray-500 truncate">{msg.fileUrl}</p>
                             </div>
                           </a>
                         )}
 
                         {isVideo && msg.fileUrl && (
-                          <div className="relative max-w-full cursor-zoom-in">
+                          <div
+                            className="relative sm:w-[16rem] sm:h-[9rem] w-[9rem] h-[5.625rem] max-w-full cursor-zoom-in rounded-lg bg-black overflow-hidden"
+                            style={{ paddingTop: '56.25%' }} // 16:9 aspect ratio
+                          >
                             <video
                               src={isUploading ? (msg.fileUrl as string) : getProxyUrl(msg.fileUrl as string)}
                               controls={!isUploading}
-                              className={`max-w-full rounded-lg bg-black ${isUploading ? 'opacity-60' : ''}`}
+                              className={`absolute inset-0 w-full h-full object-contain ${isUploading ? 'opacity-60' : ''}`}
                             />
 
                             {isUploading && (
@@ -296,7 +300,7 @@ export default function MessageList({
                         )}
                       </>
                     )}
-                    <p className={`text-[10px] text-gray-500 mt-0.5 ${isMe ? 'text-right' : 'text-left'}`}>
+                    <p className={`text-[0.625rem] text-gray-500 mt-0.5 ${isMe ? 'text-right' : 'text-left'}`}>
                       {/* Kiểm tra và định dạng thời gian */}
                       {new Date(msg.timestamp).toLocaleTimeString('vi-VN', {
                         hour: '2-digit',

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import ChatItem from './ChatItem';
 import IconBB from '@/public/icons/bb.svg';
 import IconGroup from '@/public/icons/group.svg';
@@ -8,7 +8,8 @@ import type { GroupConversation, ChatItem as ChatItemType } from '../../types/Gr
 import { getProxyUrl } from '../../utils/utils';
 import ICGroupPeople from '@/components/svg/ICGroupPeople';
 import ICPersonPlus from '@/components/svg/ICPersonPlus';
-import MessageFilter from '../(chatPopup)/MessageFilter';
+import MessageFilter, { FilterType } from '../(chatPopup)/MessageFilter';
+import Image from 'next/image';
 
 interface SidebarProps {
   currentUser: User;
@@ -20,7 +21,7 @@ interface SidebarProps {
   selectedChat: ChatItemType | null;
   onSelectChat: (item: ChatItemType) => void;
   onChatAction: (roomId: string, actionType: 'pin' | 'hide', isChecked: boolean, isGroup: boolean) => void;
-  onNavigateToMessage: (message: any) => void;
+  onNavigateToMessage: (message: Message) => void;
 }
 
 interface Message {
@@ -40,11 +41,11 @@ interface Message {
 }
 
 interface GlobalSearchResult {
-  contacts: any[];
+  contacts: ChatItemType[];
   messages: Message[];
 }
 
-const getChatDisplayName = (chat: any): string => {
+const getChatDisplayName = (chat: ChatItemType): string => {
   const maybeGroup = chat as GroupConversation;
   const isGroupChat = maybeGroup.isGroup === true || Array.isArray(maybeGroup.members);
 
@@ -133,7 +134,7 @@ export default function Sidebar({
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const [filterType, setFilterType] = useState<'all' | 'unread' | 'read'>('all');
+  const [filterType, setFilterType] = useState<FilterType>('all');
 
   // Handle global search (API call logic)
   const handleGlobalSearch = useCallback(
@@ -146,7 +147,7 @@ export default function Sidebar({
       const lowerCaseTerm = term.toLowerCase();
 
       // 1. Tìm liên hệ/nhóm (local search)
-      const allChats = [...groups, ...allUsers];
+      const allChats: ChatItemType[] = [...groups, ...allUsers];
       const contactResults = allChats
         .filter((c) => getChatDisplayName(c).toLowerCase().includes(lowerCaseTerm))
         .slice(0, 10);
@@ -254,40 +255,50 @@ export default function Sidebar({
   const hasSearchResults = globalSearchResults.contacts.length > 0 || globalSearchResults.messages.length > 0;
 
   // Handle select contact from search
-  const handleSelectContact = (contact: any) => {
+  const handleSelectContact = (contact: ChatItemType) => {
     onSelectChat(contact);
     setSearchTerm('');
     setGlobalSearchResults({ contacts: [], messages: [] });
   };
 
   // --- Regular Chat List Logic with Filter (Memoized) ---
-  const mixedChats = useMemo(() => [...groups, ...allUsers], [groups, allUsers]);
+  const mixedChats = useMemo<ChatItemType[]>(() => [...groups, ...allUsers], [groups, allUsers]);
 
   const isSearchActive = searchTerm.trim().length > 0;
 
   // 🔥 LOGIC CHÍNH: Áp dụng filter cho cả search và default
   const filteredAndSortedChats = useMemo(() => {
-    // 1. Lọc theo search term và hidden status
-    let filtered = mixedChats.filter((chat: any) => {
+    // 1. Lọc theo search term, hidden status và loại filter
+    let filtered = mixedChats.filter((chat: ChatItemType) => {
       const isHidden = chat.isHidden;
       const displayName = getChatDisplayName(chat);
       const matchesSearch = isSearchActive ? displayName.toLowerCase().includes(searchTerm.toLowerCase()) : true;
 
-      // Khi search: hiển thị cả hidden, khi không search: ẩn hidden
-      return isSearchActive ? matchesSearch : !isHidden && matchesSearch;
+      if (isSearchActive) {
+        // Khi search: hiển thị tất cả chat khớp tên (kể cả ẩn)
+        return matchesSearch;
+      }
+
+      if (filterType === 'hidden') {
+        // Tab "Ẩn trò chuyện": chỉ hiển thị các chat đã ẩn
+        return isHidden && matchesSearch;
+      }
+
+      // Các tab khác: chỉ hiển thị chat không bị ẩn
+      return !isHidden && matchesSearch;
     });
 
-    // 2. Áp dụng filter read/unread (chỉ khi KHÔNG search)
-    if (!isSearchActive) {
+    // 2. Áp dụng filter read/unread (chỉ khi KHÔNG search và KHÔNG ở tab hidden)
+    if (!isSearchActive && filterType !== 'hidden') {
       if (filterType === 'unread') {
-        filtered = filtered.filter((chat: any) => (chat.unreadCount || 0) > 0);
+        filtered = filtered.filter((chat: ChatItemType) => (chat.unreadCount || 0) > 0);
       } else if (filterType === 'read') {
-        filtered = filtered.filter((chat: any) => (chat.unreadCount || 0) === 0);
+        filtered = filtered.filter((chat: ChatItemType) => (chat.unreadCount || 0) === 0);
       }
     }
 
     // 3. Sắp xếp: Pin trước, sau đó theo thời gian
-    filtered.sort((a: any, b: any) => {
+    filtered.sort((a: ChatItemType, b: ChatItemType) => {
       const timeA = a.lastMessageAt || 0;
       const timeB = b.lastMessageAt || 0;
       const aPinned = a.isPinned || false;
@@ -313,28 +324,37 @@ export default function Sidebar({
 
   // 🔥 Tính số lượng cho mỗi filter (để hiển thị badge)
   const filterCounts = useMemo(() => {
-    const visibleChats = mixedChats.filter((chat: any) => !chat.isHidden);
+    const visibleChats = mixedChats.filter((chat: ChatItemType) => !chat.isHidden);
+    const hiddenChats = mixedChats.filter((chat: ChatItemType) => chat.isHidden);
     return {
       all: visibleChats.length,
-      unread: visibleChats.filter((chat: any) => (chat.unreadCount || 0) > 0).length,
-      read: visibleChats.filter((chat: any) => (chat.unreadCount || 0) === 0).length,
+      unread: visibleChats.filter((chat: ChatItemType) => (chat.unreadCount || 0) > 0).length,
+      read: visibleChats.filter((chat: ChatItemType) => (chat.unreadCount || 0) === 0).length,
+      hidden: hiddenChats.length,
     };
   }, [mixedChats]);
+
+  // Nếu đang ở tab "Ẩn trò chuyện" nhưng không còn cuộc trò chuyện ẩn nào → tự động về tab "Tất cả"
+  useEffect(() => {
+    if (filterType === 'hidden' && filterCounts.hidden === 0) {
+      setFilterType('all');
+    }
+  }, [filterType, filterCounts.hidden]);
 
   return (
     <aside className="relative flex flex-col h-full bg-[#f4f6f9] border-r border-gray-200 w-full md:w-80">
       {/* --- Thanh trên cùng kiểu Zalo --- */}
       <div className="border-b border-blue-600/20">
         {/* Top bar: avatar + action icons */}
-        <div className="px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-between text-white">
+        <div className="px-3 py-2 bg-gradient-to-r bg-gray-800/50 flex items-center justify-between text-white">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 rounded-full bg-white/20 overflow-hidden flex items-center justify-center text-sm font-semibold">
               {currentUser.avatar ? (
-                <img
-                  src={getProxyUrl(currentUser.avatar)}
-                  alt={currentUser.name}
+                <Image
                   width={32}
                   height={32}
+                  src={getProxyUrl(currentUser.avatar)}
+                  alt={currentUser.name}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -342,10 +362,10 @@ export default function Sidebar({
               )}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-semibold truncate max-w-[140px]">
+              <span className="text-sm font-semibold truncate max-w-[8.75rem]">
                 {currentUser.name || currentUser.username}
               </span>
-              <span className="text-[11px] opacity-80 truncate max-w-[160px]">ID: {currentUser.username}</span>
+              <span className="text-[0.6875rem] opacity-80 truncate max-w-[10rem]">ID: {currentUser.username}</span>
             </div>
           </div>
         </div>
@@ -434,9 +454,10 @@ export default function Sidebar({
                 {filterType === 'unread' && 'Không có tin nhắn chưa đọc'}
                 {filterType === 'read' && 'Không có tin nhắn đã đọc'}
                 {filterType === 'all' && 'Chưa có cuộc trò chuyện nào'}
+                {filterType === 'hidden' && 'Không có cuộc trò chuyện ẩn'}
               </div>
             ) : (
-              filteredAndSortedChats.map((item: any) => {
+              filteredAndSortedChats.map((item: ChatItemType) => {
                 const isGroupItem = item.isGroup === true || Array.isArray(item.members);
                 return (
                   <ChatItem

@@ -5,8 +5,8 @@ const ICBack = ({ className, stroke }: { className?: string; stroke?: string }) 
     <div>
       <svg
         className={className}
-        width="800px"
-        height="800px"
+        width="50px"
+        height="50px"
         viewBox="0 0 200 200"
         xmlns="http://www.w3.org/2000/svg"
         fill={stroke || '#000000'}

@@ -17,6 +17,7 @@ interface HomeDesktopProps {
   setShowCreateGroupModal: (show: boolean) => void;
   selectedChat: ChatItem | null;
   onSelectChat: (item: ChatItem) => void;
+  onBackFromChat: () => void;
   onChatAction: (roomId: string, actionType: 'pin' | 'hide', isChecked: boolean, isGroupChat: boolean) => void;
   scrollToMessageId: string | null;
   onScrollComplete: () => void;
@@ -34,6 +35,7 @@ export default function HomeDesktop({
   setShowCreateGroupModal,
   selectedChat,
   onSelectChat,
+  onBackFromChat,
   onChatAction,
   scrollToMessageId,
   onScrollComplete,
@@ -67,6 +69,7 @@ export default function HomeDesktop({
             onChatAction={onChatAction}
             scrollToMessageId={scrollToMessageId}
             onScrollComplete={onScrollComplete}
+            onBackFromChat={onBackFromChat}
           />
         ) : (
           <HomeWelcomeBanner currentUser={currentUser} />

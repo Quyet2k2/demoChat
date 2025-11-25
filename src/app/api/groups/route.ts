@@ -313,6 +313,104 @@ export async function POST(req: NextRequest) {
         });
         return NextResponse.json({ success: true, result });
       }
+
+      // --- RỜI NHÓM: Thành viên tự rời khỏi nhóm ---
+      case 'leaveGroup': {
+        if (!conversationId || !currentUserId) {
+          return NextResponse.json({ error: 'Missing info' }, { status: 400 });
+        }
+
+        const userIdStr = String(currentUserId);
+
+        // Lấy thông tin nhóm hiện tại
+        const group = await collection.findOne({ _id: new ObjectId(conversationId) } as any);
+        if (!group) {
+          return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+        }
+
+        const members: any[] = Array.isArray(group.members) ? (group.members as any[]) : [];
+
+        // Xác định xem current user có phải OWNER không
+        const ownerMember = members.find((m) => m && String(m._id) === userIdStr && m.role === 'OWNER');
+
+        if (!ownerMember) {
+          // Không phải OWNER -> chỉ cần rời nhóm
+          const result = await collection.updateOne({ _id: new ObjectId(conversationId) } as any, {
+            $pull: { members: { _id: userIdStr } } as any,
+          });
+          return NextResponse.json({ success: true, result });
+        }
+
+        // Nếu là OWNER: tìm người kế nhiệm
+        const otherMembers = members.filter((m) => m && String(m._id) !== userIdStr);
+
+        if (otherMembers.length === 0) {
+          // Không còn ai trong nhóm -> xóa luôn nhóm
+          await collection.deleteOne({ _id: new ObjectId(conversationId) } as any);
+          const msgCollection = await getCollection<Message>(MESSAGES_COLLECTION_NAME);
+          await msgCollection.deleteMany({ roomId: String(conversationId) } as any);
+          return NextResponse.json({ success: true });
+        }
+
+        // Ưu tiên chọn ADMIN làm OWNER, nếu không có thì lấy thành viên đầu tiên
+        const nextOwner =
+          otherMembers.find((m) => m.role === 'ADMIN') ||
+          otherMembers[0];
+
+        const nextOwnerId = String(nextOwner._id);
+
+        // 1) Nâng quyền người kế nhiệm lên OWNER
+        await collection.updateOne(
+          { _id: new ObjectId(conversationId), 'members._id': nextOwnerId } as any,
+          { $set: { 'members.$.role': 'OWNER' } } as any,
+        );
+
+        // 2) Xóa OWNER cũ khỏi nhóm
+        const result = await collection.updateOne({ _id: new ObjectId(conversationId) } as any, {
+          $pull: { members: { _id: userIdStr } } as any,
+        });
+
+        return NextResponse.json({ success: true, result });
+      }
+
+      // --- GIẢI TÁN NHÓM: Chỉ OWNER mới được phép ---
+      case 'disbandGroup': {
+        if (!conversationId || !currentUserId) {
+          return NextResponse.json({ error: 'Missing info' }, { status: 400 });
+        }
+
+        const group = await collection.findOne({ _id: new ObjectId(conversationId) } as any);
+        if (!group) {
+          return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+        }
+
+        const userIdStr = String(currentUserId);
+
+        // Xác định OWNER: ưu tiên createdBy, sau đó member có role === 'OWNER'
+        const createdByStr = group.createdBy ? String(group.createdBy) : null;
+        let ownerId: string | null = createdByStr;
+
+        if (!ownerId && Array.isArray(group.members)) {
+          const ownerMember = (group.members as any[]).find((m) => m && m.role === 'OWNER' && m._id);
+          if (ownerMember) {
+            ownerId = String(ownerMember._id);
+          }
+        }
+
+        if (!ownerId || ownerId !== userIdStr) {
+          return NextResponse.json({ error: 'Only owner can disband group' }, { status: 403 });
+        }
+
+        // Xóa nhóm
+        await collection.deleteOne({ _id: new ObjectId(conversationId) } as any);
+
+        // Xóa toàn bộ tin nhắn của nhóm
+        const msgCollection = await getCollection<Message>(MESSAGES_COLLECTION_NAME);
+        await msgCollection.deleteMany({ roomId: String(conversationId) } as any);
+
+        return NextResponse.json({ success: true });
+      }
+
       // 🔥 CASE MỚI: TOGGLE PIN/HIDE CHO CHAT NHÓM
       case 'toggleChatStatus': {
         if (!conversationId || !currentUserId || !data) {

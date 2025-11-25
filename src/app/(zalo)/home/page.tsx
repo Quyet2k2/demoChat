@@ -50,6 +50,7 @@ export default function HomePage() {
         setShowCreateGroupModal={setShowCreateGroupModal}
         selectedChat={selectedChat}
         onSelectChat={handleSelectChat}
+        onBackFromChat={() => setSelectedChat(null)}
         onChatAction={handleChatAction}
         scrollToMessageId={scrollToMessageId}
         onScrollComplete={() => setScrollToMessageId(null)}

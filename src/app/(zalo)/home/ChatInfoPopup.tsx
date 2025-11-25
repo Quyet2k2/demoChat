@@ -3,11 +3,9 @@
 import React, { useRef } from 'react';
 import IconEdit from '@/public/icons/edit.svg';
 import IconClock from '@/public/icons/clock.svg';
-import IconNotification from '@/public/icons/notification.svg';
 import IconPin from '@/public/icons/pin.svg';
 import IconGroup from '@/public/icons/group.svg';
 import IconGroup1 from '@/public/icons/group1.svg';
-import IconWR from '@/public/icons/warning.svg';
 import ArrowRightICon from '@/public/icons/arrow-right-icon.svg';
 import ModalMembers from '../../../components/base/ModalMembers';
 import { ChatItem, GroupConversation, MemberInfo } from '../../../types/Group';

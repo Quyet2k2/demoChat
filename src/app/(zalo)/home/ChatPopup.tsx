@@ -1185,7 +1185,11 @@ export default function ChatWindow({
               const msgType = isVideo ? 'file' : 'image';
               handleUploadAndSend(file, msgType);
             }}
-            onSelectFile={(file) => handleUploadAndSend(file, 'file')}
+            onSelectFile={(file) => {
+              const isVideo = file.type.startsWith('video/') || isVideoFile(file.name);
+              const msgType = isVideo ? 'video' : 'file';
+              handleUploadAndSend(file, msgType);
+            }}
             onFocusEditable={() => setShowEmojiPicker(false)}
           />
         </div>

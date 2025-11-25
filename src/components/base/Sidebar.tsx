@@ -1,15 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
 import React from 'react';
 import ChatItem from './ChatItem'; // Import component con
-import IconBB from '@/public/icons/bb.svg';
-import IconGroup from '@/public/icons/group.svg';
 import { User } from '../../types/User';
 import type { GroupConversation, ChatItem as ChatItemType } from '../../types/Group';
-import Image from 'next/image';
 import { getProxyUrl } from '../../utils/utils';
-import ICSearch from '@/components/svg/ICSearch';
 import ICGroupPeople from '@/components/svg/ICGroupPeople';
-import ICPersonPlus from '@/components/svg/ICPersonPlus';
 
 interface SidebarProps {
   currentUser: User;

@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb';
 import { User, USERS_COLLECTION_NAME } from '@/types/User';
 import { Message, MESSAGES_COLLECTION_NAME } from '@/types/Message';
 import { signJWT } from '@/lib/auth';
-import bcrypt from 'bcryptjs';
+// import bcrypt from 'bcryptjs'; // ❌ COMMENT: Không sử dụng bcrypt nữa
 
 export const runtime = 'nodejs';
 
@@ -23,7 +23,16 @@ interface LoginPayload {
 type UsersRequestData = Partial<User> & ToggleChatStatusPayload & LoginPayload & Record<string, unknown>;
 
 interface UsersRequestBody {
-  action?: 'create' | 'read' | 'getById' | 'update' | 'delete' | 'toggleChatStatus' | 'login' | 'logout'| 'changePassword';
+  action?:
+    | 'create'
+    | 'read'
+    | 'getById'
+    | 'update'
+    | 'delete'
+    | 'toggleChatStatus'
+    | 'login'
+    | 'logout'
+    | 'changePassword';
   collectionName?: string;
   data?: UsersRequestData;
   field?: keyof User;
@@ -42,10 +51,8 @@ interface UsersRequestBody {
 }
 
 export async function POST(req: NextRequest) {
-  // Bọc parse JSON để tránh crash khi body rỗng / không hợp lệ
   let body: UsersRequestBody = {};
   try {
-    // Chỉ cố parse nếu header là JSON
     const contentType = req.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
       body = (await req.json()) as UsersRequestBody;
@@ -81,40 +88,21 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Missing data or password' }, { status: 400 });
         }
 
-        // 🔥 BƯỚC 1: BĂM MẬT KHẨU TRƯỚC KHI LƯU (Hashing)
-        const salt = await bcrypt.genSalt(10); // Tạo salt
-        const hashedPassword = await bcrypt.hash(data.password as string, salt); // Băm với độ khó 10
+        // ❌ COMMENT: Không băm mật khẩu nữa, lưu trực tiếp plaintext
+        // const salt = await bcrypt.genSalt(10);
+        // const hashedPassword = await bcrypt.hash(data.password as string, salt);
 
         const newData = {
           ...data,
-          password: hashedPassword, // Lưu chuỗi hash
+          // password: hashedPassword, // ❌ Lưu hash
+          password: data.password, // ✅ Lưu plaintext
         };
 
         const _id = await addRow<User>(collectionName, newData as User);
         return NextResponse.json({ success: true, _id });
       }
 
-      // case 'updateAvatar': {
-      //   // Nhận userId và newAvatarUrl từ data
-      //   const { userId, newAvatarUrl } = data;
-      //
-      //   if (!userId || !newAvatarUrl) {
-      //     return NextResponse.json({ error: 'Missing user ID or new Avatar URL' }, { status: 400 });
-      //   }
-      //
-      //   // Cập nhật trường avatar trên document User có _id = userId
-      //   const result = await updateByField<User>(
-      //     collectionName,
-      //     '_id',
-      //     userId,
-      //     { avatar: newAvatarUrl }
-      //   );
-      //
-      //   return NextResponse.json({ success: true, result });
-      // }
-
       case 'read': {
-        // 1. Dùng getAllRows lấy danh sách User (Tận dụng sẵn)
         const result = await getAllRows<User>(collectionName, {
           search,
           skip,
@@ -131,46 +119,33 @@ export async function POST(req: NextRequest) {
           return NextResponse.json(result);
         }
         const userIdStr = String(currentUserId);
-        // 🔥 2. TẬN DỤNG getCollection ĐỂ TÍNH BADGE
         const msgCollection = await getCollection<Message>(MESSAGES_COLLECTION_NAME);
 
         const usersWithData = await Promise.all(
           users.map(async (u: User) => {
-            // Bỏ qua chính mình trong danh sách
             if (String(u._id) === userIdStr) return u;
 
-            // Tạo Room ID 1-1 (Sort để đảm bảo A_B giống B_A)
             const roomId = [userIdStr, String(u._id)].sort().join('_');
 
-            // --- A. Đếm tin chưa đọc ---
             const unreadCount = await msgCollection.countDocuments({
               roomId,
-              readBy: { $ne: userIdStr }, // user chưa đọc
+              readBy: { $ne: userIdStr },
             });
 
-            // --- B. Lấy tin nhắn cuối cùng ---
-            const lastMsgs = await msgCollection
-              .find({ roomId })
-              .sort({ timestamp: -1 }) // Mới nhất lên đầu
-              .limit(1)
-              .toArray();
+            const lastMsgs = await msgCollection.find({ roomId }).sort({ timestamp: -1 }).limit(1).toArray();
 
             let lastMessagePreview = '';
             const lastMsgObj = lastMsgs[0];
 
             if (lastMsgObj) {
-              // Xử lý nội dung (Text hoặc File/Ảnh)
               const content = lastMsgObj.type === 'text' ? lastMsgObj.content : `[${lastMsgObj.type}]`;
 
-              // Xử lý tiền tố "Bạn:"
               if (String(lastMsgObj.sender) === userIdStr) {
                 lastMessagePreview = `Bạn: ${content}`;
               } else {
-                // Chat 1-1 thì không cần hiện tên người kia, chỉ hiện nội dung
                 lastMessagePreview = content || '';
               }
             } else {
-              // Nếu chưa có tin nhắn nào
               lastMessagePreview = 'Các bạn đã kết nối với nhau trên Zalo';
             }
 
@@ -178,8 +153,8 @@ export async function POST(req: NextRequest) {
             const isHidden = u.isHiddenBy?.[userIdStr] === true;
             return {
               ...u,
-              unreadCount, // Số tin chưa đọc
-              lastMessage: lastMessagePreview, // Nội dung hiển thị bên dưới tên
+              unreadCount,
+              lastMessage: lastMessagePreview,
               lastMessageAt: lastMsgObj ? lastMsgObj.timestamp : null,
               isGroup: false,
               isPinned,
@@ -190,6 +165,7 @@ export async function POST(req: NextRequest) {
         const visibleUsers = usersWithData.filter((u) => !u.isHidden && String(u._id) !== userIdStr);
         return NextResponse.json({ total: usersWithData.length, data: usersWithData });
       }
+
       case 'getById':
         return NextResponse.json(await getRowByIdOrCode<User>(collectionName, { _id: requestId, code }));
 
@@ -198,7 +174,6 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Missing field or value for update' }, { status: 400 });
         }
         try {
-          // FIX: Validate ObjectId để tránh crash app nếu value rác
           if (field === '_id' && typeof value === 'string' && !ObjectId.isValid(value)) {
             return NextResponse.json({ error: 'Invalid ID format' }, { status: 400 });
           }
@@ -218,14 +193,13 @@ export async function POST(req: NextRequest) {
         if (!field || value === undefined) {
           return NextResponse.json({ error: 'Missing field or value for delete' }, { status: 400 });
         }
-        // FIX: Thêm logic xử lý ObjectId cho delete tương tự update
         const deleteValue =
           field === '_id' && typeof value === 'string' && ObjectId.isValid(value)
             ? new ObjectId(value)
             : (value as string | number);
         await deleteByField<User>(collectionName, field, deleteValue as string | number);
         return NextResponse.json({ success: true });
-      // 🔥 CASE MỚI: TOGGLE PIN/HIDE CHO CHAT 1-1
+
       case 'toggleChatStatus': {
         if (!currentUserId || !data || !roomId) {
           return NextResponse.json({ error: 'Missing currentUserId, roomId or data' }, { status: 400 });
@@ -238,9 +212,7 @@ export async function POST(req: NextRequest) {
           updateFields[`isPinnedBy.${currentUserId}`] = statusData.isPinned;
         }
 
-        // 🔥 FIX: THÊM LOGIC CHO ISHIDDEN
         if (typeof statusData.isHidden === 'boolean') {
-          // Cập nhật trạng thái ẨN của currentUserId trên document của đối tác.
           updateFields[`isHiddenBy.${currentUserId}`] = statusData.isHidden;
         }
 
@@ -248,64 +220,59 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'No status provided' }, { status: 400 });
         }
 
-        // Cập nhật document của ĐỐI TÁC (partnerId)
         const result = await updateByField<User>(collectionName, '_id', partnerId, updateFields);
-
         return NextResponse.json({ success: true, result });
       }
+
       case 'login': {
         const loginData = (data || {}) as LoginPayload;
         const { username, password } = loginData;
 
         if (!username || !password) {
-          return NextResponse.json(
-            { success: false, message: 'Thiếu tên người dùng hoặc mật khẩu!' },
-            { status: 400 }
-          );
+          return NextResponse.json({ success: false, message: 'Thiếu tên người dùng hoặc mật khẩu!' }, { status: 400 });
         }
 
-        // 1. Tìm user bằng username
+        // ✅ Tìm user bằng username VÀ password (plaintext)
         const queryResult = await getAllRows<User>(collectionName, {
-          filters: { username },
+          filters: {
+            username,
+            password, // ✅ So sánh trực tiếp plaintext
+          },
           limit: 1,
         });
 
         const found = queryResult.data?.[0];
+
         // Nếu không tìm thấy user
         if (!found) {
-          return NextResponse.json(
-            { success: false, message: 'Username hoặc Password không đúng!' },
-            { status: 401 }
-          );
+          return NextResponse.json({ success: false, message: 'Username hoặc Password không đúng!' }, { status: 401 });
         }
 
-        // Nếu không có password hash (user cũ chưa được hash)
-        if (!found.password) {
-          return NextResponse.json(
-            { success: false, message: 'Tài khoản cần được cập nhật. Vui lòng liên hệ admin!' },
-            { status: 401 }
-          );
-        }
+        // ❌ COMMENT: Không cần xác minh bcrypt nữa
+        // if (!found.password) {
+        //   return NextResponse.json(
+        //     { success: false, message: 'Tài khoản cần được cập nhật. Vui lòng liên hệ admin!' },
+        //     { status: 401 }
+        //   );
+        // }
 
-        // 2. So sánh mật khẩu
-        try {
-          const isPasswordValid = await bcrypt.compare(password, found.password as string);
+        // ❌ COMMENT: Không cần bcrypt.compare nữa
+        // try {
+        //   const isPasswordValid = await bcrypt.compare(password, found.password as string);
+        //   if (!isPasswordValid) {
+        //     return NextResponse.json(
+        //       { success: false, message: 'Username hoặc Password không đúng!' },
+        //       { status: 401 }
+        //     );
+        //   }
+        // } catch (compareError) {
+        //   return NextResponse.json(
+        //     { success: false, message: 'Lỗi xác thực. Vui lòng liên hệ admin!' },
+        //     { status: 500 }
+        //   );
+        // }
 
-
-          if (!isPasswordValid) {
-            return NextResponse.json(
-              { success: false, message: 'Username hoặc Password không đúng!' },
-              { status: 401 }
-            );
-          }
-        } catch (compareError) {
-          return NextResponse.json(
-            { success: false, message: 'Lỗi xác thực. Vui lòng liên hệ admin!' },
-            { status: 500 }
-          );
-        }
-
-        // 3. Đăng nhập thành công
+        // ✅ Đăng nhập thành công (password đã match qua filters)
         const token = await signJWT({
           _id: String(found._id),
           username: String(found.username || ''),
@@ -343,61 +310,48 @@ export async function POST(req: NextRequest) {
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
           path: '/',
-          maxAge: 0, // xoá ngay lập tức
+          maxAge: 0,
         });
         return res;
       }
 
-
       case 'changePassword': {
-        // Payload: { userId, currentPassword, newPassword }
         const changeData = data as { userId?: string; currentPassword?: string; newPassword?: string };
         const { userId, currentPassword, newPassword } = changeData;
 
         if (!userId || !currentPassword || !newPassword) {
-          return NextResponse.json(
-            { success: false, message: 'Thiếu thông tin bắt buộc' },
-            { status: 400 }
-          );
+          return NextResponse.json({ success: false, message: 'Thiếu thông tin bắt buộc' }, { status: 400 });
         }
 
         // 1. Tìm user
         const userDoc = await getRowByIdOrCode<User>(collectionName, { _id: userId });
 
         if (!userDoc || !userDoc.row.password) {
-          return NextResponse.json(
-            { success: false, message: 'Không tìm thấy tài khoản' },
-            { status: 404 }
-          );
+          return NextResponse.json({ success: false, message: 'Không tìm thấy tài khoản' }, { status: 404 });
         }
 
-        // 2. Xác minh mật khẩu hiện tại
-        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, userDoc.row.password as string);
-
-        if (!isCurrentPasswordValid) {
-          return NextResponse.json(
-            { success: false, message: 'Mật khẩu hiện tại không đúng' },
-            { status: 401 }
-          );
+        // ✅ So sánh plaintext trực tiếp
+        if (currentPassword !== userDoc.row.password) {
+          return NextResponse.json({ success: false, message: 'Mật khẩu hiện tại không đúng' }, { status: 401 });
         }
 
-        // 3. Hash mật khẩu mới
-        const salt = await bcrypt.genSalt(10);
-        const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+        // ❌ COMMENT: Không hash password mới nữa
+        // const salt = await bcrypt.genSalt(10);
+        // const hashedNewPassword = await bcrypt.hash(newPassword, salt);
 
-        // 4. Cập nhật vào DB
+        // ✅ Cập nhật password mới (plaintext)
         await updateByField<User>(
           collectionName,
           '_id',
           userId,
-          { password: hashedNewPassword }
+          { password: newPassword }, // ✅ Lưu plaintext
         );
 
         console.log('✅ Password changed successfully for userId:', userId);
 
         return NextResponse.json({
           success: true,
-          message: 'Đổi mật khẩu thành công'
+          message: 'Đổi mật khẩu thành công',
         });
       }
 

@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb';
 import { User, USERS_COLLECTION_NAME } from '@/types/User';
 import { Message, MESSAGES_COLLECTION_NAME } from '@/types/Message';
 import { signJWT } from '@/lib/auth';
+import bcrypt from 'bcryptjs';
 
 type UserSort = { field: keyof User; order?: 'asc' | 'desc' } | Array<{ field: keyof User; order?: 'asc' | 'desc' }>;
 
@@ -20,7 +21,7 @@ interface LoginPayload {
 type UsersRequestData = Partial<User> & ToggleChatStatusPayload & LoginPayload & Record<string, unknown>;
 
 interface UsersRequestBody {
-  action?: 'create' | 'read' | 'getById' | 'update' | 'delete' | 'toggleChatStatus' | 'login' | 'logout';
+  action?: 'create' | 'read' | 'getById' | 'update' | 'delete' | 'toggleChatStatus' | 'login' | 'logout'| 'changePassword';
   collectionName?: string;
   data?: UsersRequestData;
   field?: keyof User;
@@ -74,31 +75,41 @@ export async function POST(req: NextRequest) {
   try {
     switch (action) {
       case 'create': {
-        if (!data) {
-          return NextResponse.json({ error: 'Missing data' }, { status: 400 });
+        if (!data || !data.password) {
+          return NextResponse.json({ error: 'Missing data or password' }, { status: 400 });
         }
-        const _id = await addRow<User>(collectionName, data as User);
+
+        // 🔥 BƯỚC 1: BĂM MẬT KHẨU TRƯỚC KHI LƯU (Hashing)
+        const salt = await bcrypt.genSalt(10); // Tạo salt
+        const hashedPassword = await bcrypt.hash(data.password as string, salt); // Băm với độ khó 10
+
+        const newData = {
+          ...data,
+          password: hashedPassword, // Lưu chuỗi hash
+        };
+
+        const _id = await addRow<User>(collectionName, newData as User);
         return NextResponse.json({ success: true, _id });
       }
 
-      case 'updateAvatar': {
-        // Nhận userId và newAvatarUrl từ data
-        const { userId, newAvatarUrl } = data;
-
-        if (!userId || !newAvatarUrl) {
-          return NextResponse.json({ error: 'Missing user ID or new Avatar URL' }, { status: 400 });
-        }
-
-        // Cập nhật trường avatar trên document User có _id = userId
-        const result = await updateByField<User>(
-          collectionName,
-          '_id',
-          userId,
-          { avatar: newAvatarUrl }
-        );
-
-        return NextResponse.json({ success: true, result });
-      }
+      // case 'updateAvatar': {
+      //   // Nhận userId và newAvatarUrl từ data
+      //   const { userId, newAvatarUrl } = data;
+      //
+      //   if (!userId || !newAvatarUrl) {
+      //     return NextResponse.json({ error: 'Missing user ID or new Avatar URL' }, { status: 400 });
+      //   }
+      //
+      //   // Cập nhật trường avatar trên document User có _id = userId
+      //   const result = await updateByField<User>(
+      //     collectionName,
+      //     '_id',
+      //     userId,
+      //     { avatar: newAvatarUrl }
+      //   );
+      //
+      //   return NextResponse.json({ success: true, result });
+      // }
 
       case 'read': {
         // 1. Dùng getAllRows lấy danh sách User (Tận dụng sẵn)
@@ -242,20 +253,57 @@ export async function POST(req: NextRequest) {
       }
       case 'login': {
         const loginData = (data || {}) as LoginPayload;
-        console.log('data: ', loginData);
         const { username, password } = loginData;
-        if (!username || !password)
-          return NextResponse.json({ success: false, message: 'Thiếu tên người dùng hoặc mật khẩu!' }, { status: 400 });
 
+        if (!username || !password) {
+          return NextResponse.json(
+            { success: false, message: 'Thiếu tên người dùng hoặc mật khẩu!' },
+            { status: 400 }
+          );
+        }
+
+        // 1. Tìm user bằng username
         const queryResult = await getAllRows<User>(collectionName, {
-          filters: { username, password },
+          filters: { username },
           limit: 1,
         });
-        const found = queryResult.data?.[0];
-        if (!found)
-          return NextResponse.json({ success: false, message: 'Username hoặc Password không đúng!' }, { status: 401 });
 
-        // --- Tạo session ---
+        const found = queryResult.data?.[0];
+        // Nếu không tìm thấy user
+        if (!found) {
+          return NextResponse.json(
+            { success: false, message: 'Username hoặc Password không đúng!' },
+            { status: 401 }
+          );
+        }
+
+        // Nếu không có password hash (user cũ chưa được hash)
+        if (!found.password) {
+          return NextResponse.json(
+            { success: false, message: 'Tài khoản cần được cập nhật. Vui lòng liên hệ admin!' },
+            { status: 401 }
+          );
+        }
+
+        // 2. So sánh mật khẩu
+        try {
+          const isPasswordValid = await bcrypt.compare(password, found.password as string);
+
+
+          if (!isPasswordValid) {
+            return NextResponse.json(
+              { success: false, message: 'Username hoặc Password không đúng!' },
+              { status: 401 }
+            );
+          }
+        } catch (compareError) {
+          return NextResponse.json(
+            { success: false, message: 'Lỗi xác thực. Vui lòng liên hệ admin!' },
+            { status: 500 }
+          );
+        }
+
+        // 3. Đăng nhập thành công
         const token = await signJWT({
           _id: found._id,
           username: found.username,
@@ -264,7 +312,6 @@ export async function POST(req: NextRequest) {
 
         const res = NextResponse.json({
           success: true,
-          // Trả về đầy đủ thông tin cần thiết cho FE (bao gồm avatar)
           user: {
             _id: found._id,
             name: found.name,
@@ -276,13 +323,12 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        // 2. Set Cookie HttpOnly (Thay thế cho session DB)
         res.cookies.set('session_token', token, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           path: '/',
           sameSite: 'lax',
-          maxAge: 30 * 24 * 3600, // 30 ngày - duy trì đăng nhập lâu, chỉ xoá khi logout hoặc sau 30 ngày
+          maxAge: 30 * 24 * 3600,
         });
 
         return res;
@@ -298,6 +344,59 @@ export async function POST(req: NextRequest) {
           maxAge: 0, // xoá ngay lập tức
         });
         return res;
+      }
+
+
+      case 'changePassword': {
+        // Payload: { userId, currentPassword, newPassword }
+        const changeData = data as { userId?: string; currentPassword?: string; newPassword?: string };
+        const { userId, currentPassword, newPassword } = changeData;
+
+        if (!userId || !currentPassword || !newPassword) {
+          return NextResponse.json(
+            { success: false, message: 'Thiếu thông tin bắt buộc' },
+            { status: 400 }
+          );
+        }
+
+        // 1. Tìm user
+        const userDoc = await getRowByIdOrCode<User>(collectionName, { _id: userId });
+
+        if (!userDoc || !userDoc.row.password) {
+          return NextResponse.json(
+            { success: false, message: 'Không tìm thấy tài khoản' },
+            { status: 404 }
+          );
+        }
+
+        // 2. Xác minh mật khẩu hiện tại
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, userDoc.row.password as string);
+
+        if (!isCurrentPasswordValid) {
+          return NextResponse.json(
+            { success: false, message: 'Mật khẩu hiện tại không đúng' },
+            { status: 401 }
+          );
+        }
+
+        // 3. Hash mật khẩu mới
+        const salt = await bcrypt.genSalt(10);
+        const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+        // 4. Cập nhật vào DB
+        await updateByField<User>(
+          collectionName,
+          '_id',
+          userId,
+          { password: hashedNewPassword }
+        );
+
+        console.log('✅ Password changed successfully for userId:', userId);
+
+        return NextResponse.json({
+          success: true,
+          message: 'Đổi mật khẩu thành công'
+        });
       }
 
       default:

@@ -35,6 +35,7 @@ import {
 } from '@/fetch/messages';
 import SearchSidebar from '@/components/(chatPopup)/SearchMessageModal';
 import { isVideoFile } from '@/utils/utils';
+import ICPin from '@/components/svg/ICPin';
 
 const MESSAGE_SOUND_URL = 'https://assets.mixkit.co/sfx/preview/mixkit-message-pop-alert-2354.mp3';
 
@@ -132,7 +133,7 @@ export default function ChatWindow({
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const isGroup = 'isGroup' in selectedChat && selectedChat.isGroup === true;
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
-  const [, setPinnedMessage] = useState<Message | null>(null);
+  const [pinnedMessage, setPinnedMessage] = useState<Message | null>(null);
   const [allPinnedMessages, setAllPinnedMessages] = useState<Message[]>([]);
   const [showPinnedList, setShowPinnedList] = useState(false);
   const [previewMedia, setPreviewMedia] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
@@ -318,6 +319,8 @@ export default function ChatWindow({
     const canDownload = (msg.type === 'image' || msg.type === 'file' || msg.type === 'sticker') && msg.fileUrl;
     const canRecall = isMe && !isRecalled;
     const canEdit = isMe && isText && !isRecalled;
+
+    const isCurrentlyPinned = msg.isPinned === true;
     const style = {
       top: y,
       left: x > window.innerWidth - 200 ? x - 180 : x,
@@ -340,8 +343,16 @@ export default function ChatWindow({
               closeContextMenu();
             }}
           >
-            <Image src={PinIcon} className="text-black" title="Ghim tin nhắn" width={20} height={20} alt="" />
-            Ghim tin nhắn
+
+            {isCurrentlyPinned ? <p className="text-red-500 flex gap-2">
+              <ICPin className="w-5 h-5" stroke="#ff0000" />
+              Bỏ ghim tin nhắn
+            </p> :
+              <p className="flex gap-2">
+                <ICPin className="w-5 h-5" stroke="#1f1f1f" />
+                Ghim tin nhắn
+              </p> }
+
           </MenuItem>
         )}
 

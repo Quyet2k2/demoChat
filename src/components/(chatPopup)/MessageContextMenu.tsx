@@ -7,8 +7,10 @@ import ICPin from '../svg/ICPin';
 const getId = (u: Message['sender'] | string | undefined | null): string => {
   if (!u) return '';
   if (typeof u === 'string') return u;
-  if (typeof u === 'object' && '_id' in u && u._id != null) return String(u._id);
-  if (typeof u === 'object' && 'id' in u && u.id != null) return String(u.id);
+  if (typeof u === 'object' && u !== null && '_id' in u && (u as { _id?: unknown })._id != null)
+    return String((u as { _id: unknown })._id);
+  if (typeof u === 'object' && u !== null && 'id' in u && (u as { id?: unknown }).id != null)
+    return String((u as { id: unknown }).id);
   return '';
 };
 

@@ -150,7 +150,7 @@ export default function LoginForm() {
             <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white">
               <span className="text-xl font-extrabold text-[#0068ff]">H</span>
             </div>
-            <span className="text-2xl font-semibold leading-none">Hupuna</span>
+            <span className="text-2xl font-semibold leading-none flex items-center">Hupuna</span>
           </div>
           <span className="hidden text-sm opacity-80 sm:inline">Phiên bản {APP_VERSION}</span>
         </div>

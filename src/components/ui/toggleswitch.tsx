@@ -20,9 +20,9 @@ const ToggleSwitch = ({ checked = true, onChange }: ToggleSwitchProps) => {
           bg-gray-400 transition-colors duration-300 rounded-full
           peer-checked:bg-blue-600
           after:content-[''] after:absolute after:h-4 after:w-4 sm:after:h-5 sm:after:w-5 
-          after:left-[3px] sm:after:left-[4px] after:top-1/2 after:-translate-y-1/2
+          after:left-[0.1875rem] sm:after:left-[0.25rem] after:top-1/2 after:-translate-y-1/2
           after:bg-white after:rounded-full after:transition-transform after:duration-300
-          peer-checked:after:translate-x-5
+          peer-checked:after:translate-x-[1.5625rem] sm:peer-checked:after:translate-x-[2rem]
         "
       />
     </label>

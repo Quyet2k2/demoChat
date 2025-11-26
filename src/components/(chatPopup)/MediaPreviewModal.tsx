@@ -15,10 +15,7 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose }:
   if (!media) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[10000] bg-black/80 flex items-center justify-center"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-[10000] bg-black/80 flex items-center justify-center" onClick={onClose}>
       <div
         className="relative w-full max-w-5xl mx-auto px-4 sm:px-6"
         onClick={(e) => {
@@ -42,14 +39,9 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose }:
               href={media.url}
               target="_blank"
               rel="noreferrer"
-              className="hidden sm:inline-flex items-center px-2 py-1 rounded-full bg-white/5 hover:bg-white/15 text-[11px] sm:text-xs text-gray-100 border border-white/10"
+              className="hidden sm:inline-flex items-center px-2 py-1 rounded-full bg-white/5 hover:bg-white/15 text-[0.6875rem] sm:text-xs text-gray-100 border border-white/10"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-3 h-3 mr-1"
-              >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 mr-1">
                 <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
                 <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
               </svg>
@@ -88,17 +80,10 @@ export default function MediaPreviewModal({ media, chatName, isGroup, onClose }:
               className="max-h-[80vh] w-auto max-w-full object-contain select-none"
             />
           ) : (
-            <video
-              src={media.url}
-              controls
-              autoPlay
-              className="max-h-[80vh] w-full max-w-full bg-black select-none"
-            />
+            <video src={media.url} controls autoPlay className="max-h-[80vh] w-full max-w-full bg-black select-none" />
           )}
         </div>
       </div>
     </div>
   );
 }
-
-

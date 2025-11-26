@@ -8,6 +8,21 @@ import HomeWelcomeBanner from './HomeWelcomeBanner';
 import { User } from '@/types/User';
 import { ChatItem, GroupConversation } from '@/types/Group';
 
+interface Message {
+  _id: string;
+  content?: string;
+  type: 'text' | 'image' | 'file' | 'sticker' | 'video';
+  fileName?: string;
+  timestamp: number;
+  sender: string;
+  senderName: string;
+  roomId: string;
+  roomName: string;
+  isGroupChat: boolean;
+  partnerId?: string;
+  partnerName?: string;
+  fileUrl?: string;
+}
 interface HomeDesktopProps {
   currentUser: User;
   groups: GroupConversation[];
@@ -17,12 +32,13 @@ interface HomeDesktopProps {
   setShowCreateGroupModal: (show: boolean) => void;
   selectedChat: ChatItem | null;
   onSelectChat: (item: ChatItem) => void;
+  onBackFromChat: () => void;
   onChatAction: (roomId: string, actionType: 'pin' | 'hide', isChecked: boolean, isGroupChat: boolean) => void;
   scrollToMessageId: string | null;
   onScrollComplete: () => void;
   fetchAllData: () => Promise<void> | void;
   onShowGlobalSearch: () => void;
-  onNavigateToMessage: (message: any) => void;
+  onNavigateToMessage: (message: Message) => void;
 }
 
 export default function HomeDesktop({
@@ -34,6 +50,7 @@ export default function HomeDesktop({
   setShowCreateGroupModal,
   selectedChat,
   onSelectChat,
+  onBackFromChat,
   onChatAction,
   scrollToMessageId,
   onScrollComplete,
@@ -67,6 +84,7 @@ export default function HomeDesktop({
             onChatAction={onChatAction}
             scrollToMessageId={scrollToMessageId}
             onScrollComplete={onScrollComplete}
+            onBackFromChat={onBackFromChat}
           />
         ) : (
           <HomeWelcomeBanner currentUser={currentUser} />

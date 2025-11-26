@@ -21,10 +21,10 @@ const InterfaceSettings = () => {
     <>
       {/* --- Khung Cài đặt giao diện --- */}
       <div className="flex items-center gap-x-2 ml-15 sm:ml-15  mb-5">
-        <h2 className="text-[18px] font-bold text-gray-800 ">Cài đặt giao diện</h2>
+        <h2 className="text-[1.125rem] font-bold text-gray-800 ">Cài đặt giao diện</h2>
         <span className="bg-blue-100 text-blue-600 text-xs font-semibold px-2 rounded-full">Beta</span>
       </div>
-      <div className="p-4 sm:p-6 w-full sm:max-w-lg lg:w-[600px] xl:w-[700px] mx-auto bg-white rounded-xl shadow-lg mb-6">
+      <div className="p-4 sm:p-6 w-full sm:max-w-lg lg:w-[37.5rem] xl:w-[43.75rem] mx-auto bg-white rounded-xl shadow-lg mb-6">
         {/* --- Cài đặt giao diện --- */}
         <div className="p-4  flex flex-col sm:flex-row justify-between items-center sm:items-start gap-6 sm:gap-4">
           <ThemeOption name="Sáng" value="light" currentTheme={theme} setTheme={setTheme} image={ImgSang} />
@@ -36,9 +36,9 @@ const InterfaceSettings = () => {
       </div>
 
       {/* --- Khung Hình nền chat --- */}
-      <h2 className="text-[18px] font-bold text-gray-800 ml-15 mb-4">Hình nền chat</h2>
+      <h2 className="text-[1.125rem] font-bold text-gray-800 ml-15 mb-4">Hình nền chat</h2>
 
-      <div className="p-4 sm:p-6 w-full sm:max-w-lg lg:w-[600px] xl:w-[700px] mx-auto bg-white rounded-xl shadow-lg">
+      <div className="p-4 sm:p-6 w-full sm:max-w-lg lg:w-[37.5rem] xl:w-[43.75rem] mx-auto bg-white rounded-xl shadow-lg">
         <div className="flex justify-between items-center">
           <p className="text-gray-700">Sử dụng Avatar làm hình nền</p>
           <ToggleSwitch checked={useAvatarBg} onChange={setUseAvatarBg} />

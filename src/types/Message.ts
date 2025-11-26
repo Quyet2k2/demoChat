@@ -1,3 +1,5 @@
+import { User } from '@/types/User';
+
 export const MESSAGES_COLLECTION_NAME = 'Messages';
 
 export type MessageType = 'text' | 'image' | 'file' | 'notify' | 'sticker' | 'video';
@@ -6,7 +8,7 @@ export interface Message {
   [key: string]: unknown;
   _id: string;
   roomId: string;
-  sender: string;
+  sender: string | User;
   content?: string;
   fileUrl?: string;
   fileName?: string;
@@ -19,10 +21,11 @@ export interface Message {
   replyToMessageName?: string;
   isPinned?: boolean;
   mentions?: string[]; // Array của user IDs được mention
+  originalContent?: string;
+  editedAt?: number;
 }
 export interface MessageCreate {
   [key: string]: unknown;
-
   roomId: string;
   sender: string;
   content?: string;
@@ -35,4 +38,6 @@ export interface MessageCreate {
   replyToMessageId?: string;
   replyToMessageName?: string;
   isPinned?: boolean;
+  originalContent?: string;
+  editedAt?: number;
 }

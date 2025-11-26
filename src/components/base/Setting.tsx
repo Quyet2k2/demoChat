@@ -35,7 +35,7 @@ export default function SettingsPanel({ onClose }: SettingsPanelProps) {
   const [selectedOption, setSelectedOption] = useState(settingsOptions[0].label);
 
   return (
-    <div className="flex flex-col bg-white rounded-2xl shadow-2xl w-full mx-auto h-full md:h-[600px] max-h-[90vh] overflow-hidden relative">
+    <div className="flex flex-col bg-white rounded-2xl shadow-2xl w-full mx-auto h-full md:h-[37.5rem] max-h-[90vh] overflow-hidden relative">
       {/* Header kiểu Zalo */}
       <div className="flex items-center justify-between px-5 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
         <h2 className="text-sm md:text-base font-semibold">Cài đặt Hupuna</h2>
@@ -68,7 +68,7 @@ export default function SettingsPanel({ onClose }: SettingsPanelProps) {
                   <div className="w-4 h-4 flex items-center justify-center">{option.icon}</div>
                   <span>{option.label}</span>
                   {option.beta && (
-                    <span className="ml-1 px-1.5 py-0.5 text-[10px] font-semibold text-blue-500 bg-blue-50 rounded-full">
+                    <span className="ml-1 px-1.5 py-0.5 text-[0.625rem] font-semibold text-blue-500 bg-blue-50 rounded-full">
                       Beta
                     </span>
                   )}
@@ -95,7 +95,7 @@ export default function SettingsPanel({ onClose }: SettingsPanelProps) {
                   <div className="w-5 h-5 flex items-center justify-center text-gray-500">{option.icon}</div>
                   <span className="truncate">{option.label}</span>
                   {option.beta && (
-                    <span className="ml-auto px-2 py-0.5 text-[10px] font-semibold text-blue-500 bg-blue-50 rounded-full">
+                    <span className="ml-auto px-2 py-0.5 text-[0.625rem] font-semibold text-blue-500 bg-blue-50 rounded-full">
                       Beta
                     </span>
                   )}

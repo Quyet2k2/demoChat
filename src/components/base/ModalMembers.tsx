@@ -97,17 +97,19 @@ export default function GroupMembersModal({
     const targetMember = localMembers.find((m) => String(m._id || m.id) === targetUserId);
     const targetName = targetMember ? targetMember.name : 'Thành viên';
 
-    type GroupActionPayload =
+  type GroupActionPayload =
       | {
           conversationId: string;
           targetUserId: string;
           action: 'kickMember';
+          _id?: string;
         }
       | {
           conversationId: string;
           targetUserId: string;
           action: 'changeRole';
           data: { role: 'ADMIN' | 'MEMBER' };
+          _id: string;
         };
 
     const payload: GroupActionPayload =
@@ -116,12 +118,14 @@ export default function GroupMembersModal({
             conversationId,
             targetUserId,
             action: 'kickMember',
+            _id: myId,
           }
         : {
             conversationId,
             targetUserId,
             action: 'changeRole',
             data: { role: action === 'promote' ? 'ADMIN' : 'MEMBER' },
+            _id: myId,
           };
 
     try {
@@ -170,13 +174,13 @@ export default function GroupMembersModal({
   const RoleBadge = ({ role }: { role: GroupRole }) => {
     if (role === 'OWNER')
       return (
-        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">
+        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[0.625rem] font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">
           👑 Trưởng nhóm
         </span>
       );
     if (role === 'ADMIN')
       return (
-        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[0.625rem] font-bold bg-blue-100 text-blue-800 border border-blue-200">
           🛡️ Phó nhóm
         </span>
       );
@@ -196,13 +200,15 @@ export default function GroupMembersModal({
             <div className="min-w-0">
               <p className="text-sm font-semibold text-gray-800 truncate">Thành viên nhóm</p>
               {groupName && (
-                <p className="text-xs text-gray-500 font-medium truncate max-w-[220px] sm:max-w-[260px]">{groupName}</p>
+                <p className="text-xs text-gray-500 font-medium truncate max-w-[13.75rem] sm:max-w-[16.25rem]">
+                  {groupName}
+                </p>
               )}
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors"
+            className="w-8 cursor-pointer h-8 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-700 transition-colors"
             aria-label="Đóng"
           >
             <ICClose className="w-4 h-4" stroke="#000000" />
@@ -217,7 +223,7 @@ export default function GroupMembersModal({
             {(myRole === 'OWNER' || myRole === 'ADMIN') && (
               <button
                 onClick={() => setShowCreateGroupModal(true)}
-                className="w-full py-3 flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl font-semibold text-sm transition-all active:scale-95 group"
+                className="w-full cursor-pointer py-3 flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl font-semibold text-sm transition-all active:scale-95 group"
               >
                 <div className="p-1.5 bg-white rounded-full shadow-sm group-hover:scale-110 transition-transform">
                   <ICPersonPlus className="w-4 h-4" stroke="#000000" />
@@ -242,9 +248,9 @@ export default function GroupMembersModal({
 
           {/* Member List */}
           <div className="flex-1 overflow-y-auto p-3 sm:p-4 custom-scrollbar bg-gray-50/60">
-            <h4 className="font-semibold text-[11px] text-gray-500 mb-3 uppercase tracking-wider flex justify-between items-center">
+            <h4 className="font-semibold text-[0.6875rem] text-gray-500 mb-3 uppercase tracking-wider flex justify-between items-center">
               <span>Danh sách</span>
-              <span className="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-[11px]">
+              <span className="bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full text-[0.6875rem]">
                 {searchUser.length} thành viên
               </span>
             </h4>
@@ -286,7 +292,7 @@ export default function GroupMembersModal({
                       <div className="flex items-center flex-wrap gap-1">
                         <p className="text-sm font-bold text-gray-900 truncate">{member.name}</p>
                         {isMe && (
-                          <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-1.5 rounded">
+                          <span className="text-[0.625rem] font-medium text-gray-400 bg-gray-100 px-1.5 rounded">
                             (Bạn)
                           </span>
                         )}
@@ -315,7 +321,7 @@ export default function GroupMembersModal({
                         {canDemote(memberRole) && (
                           <button
                             onClick={() => handleAction('demote', memberId)}
-                            className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-full transition-colors"
+                            className="p-2 cursor-pointer text-yellow-600 hover:bg-yellow-50 rounded-full transition-colors"
                             title="Bãi nhiệm xuống Thành viên"
                           >
                             <ICUpload className="w-5 h-5" stroke="#000000" />
@@ -334,7 +340,7 @@ export default function GroupMembersModal({
                                 onOk: () => handleAction('kick', memberId),
                               });
                             }}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                            className="p-2 cursor-pointer text-red-500 hover:bg-red-50 rounded-full transition-colors"
                             title="Mời ra khỏi nhóm"
                           >
                             <ICTrashCan className="w-5 h-5" stroke="#ff0000" />
@@ -364,7 +370,7 @@ export default function GroupMembersModal({
         <div className="flex-none px-4 py-3 bg-white border-t border-gray-200 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="w-full sm:w-auto px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold text-sm transition-colors"
+            className="w-full cursor-pointer sm:w-auto px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold text-sm transition-colors"
           >
             Đóng
           </button>

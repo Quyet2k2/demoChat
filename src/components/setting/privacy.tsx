@@ -4,6 +4,7 @@ import IconAR2 from '@/public/icons/arrow2.svg';
 import ToggleSwitch from '../ui/toggleswitch';
 import Dropdown from '../ui/dropdown ';
 import CheckboxItem from '../ui/checkboxItem';
+import Image from 'next/image';
 
 // --- Main ---
 
@@ -20,7 +21,7 @@ const SettingsPage = () => {
     <div className="min-h-screen pt-4 sm:pt-5 pb-10">
       <div className="max-w-xl mx-auto space-y-5 px-3 sm:px-4">
         {/* Cá nhân */}
-        <h2 className="text-base sm:text-[17px] font-semibold text-black ml-2 sm:ml-3">Cá nhân</h2>
+        <h2 className="text-base sm:text-[1.0625rem] font-semibold text-black ml-2 sm:ml-3">Cá nhân</h2>
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-2 sm:py-3 px-3 sm:px-5 gap-2 sm:gap-0">
             <span className="text-sm sm:text-base text-black font-medium">Hiện ngày sinh</span>
@@ -36,7 +37,7 @@ const SettingsPage = () => {
         </div>
 
         {/* Tin nhắn và cuộc gọi */}
-        <h2 className="text-base sm:text-[17px] font-semibold text-black ml-2 sm:ml-3">Tin nhắn và cuộc gọi</h2>
+        <h2 className="text-base sm:text-[1.0625rem] font-semibold text-black ml-2 sm:ml-3">Tin nhắn và cuộc gọi</h2>
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="flex justify-between items-center py-2 sm:py-3 px-3 sm:px-5">
             <span className="text-sm sm:text-base text-black font-medium">Hiện trạng thái Đã xem</span>
@@ -62,7 +63,7 @@ const SettingsPage = () => {
         </div>
 
         {/* Chặn tin nhắn */}
-        <h2 className="text-base sm:text-[17px] font-semibold text-black ml-2 sm:ml-3">Chặn tin nhắn</h2>
+        <h2 className="text-base sm:text-[1.0625rem] font-semibold text-black ml-2 sm:ml-3">Chặn tin nhắn</h2>
         <div className="bg-white rounded-lg shadow-sm overflow-hidden ">
           <button
             onClick={() => setShowList(!showList)}
@@ -70,7 +71,11 @@ const SettingsPage = () => {
           >
             <span className="text-sm sm:text-base text-black font-medium ">Danh sách chặn</span>
             <span className="text-gray-400">
-              {showList ? <img src={IconAR1.src} className="w-5 h-5" /> : <img src={IconAR2.src} className="w-5 h-5" />}
+              {showList ? (
+                <Image alt="arrow" width={20} height={20} src={IconAR1.src} className="w-5 h-5" />
+              ) : (
+                <Image alt="arrow" width={20} height={20} src={IconAR2.src} className="w-5 h-5" />
+              )}
             </span>
           </button>
           {showList && (
@@ -86,7 +91,7 @@ const SettingsPage = () => {
         </div>
 
         {/* Nguồn tìm kiếm */}
-        <h2 className="text-base sm:text-[17px] font-semibold text-black ml-2 sm:ml-3">Nguồn tìm kiếm</h2>
+        <h2 className="text-base sm:text-[1.0625rem] font-semibold text-black ml-2 sm:ml-3">Nguồn tìm kiếm</h2>
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="flex justify-between items-center py-2 sm:py-3 px-3 sm:px-5">
             <div className="flex flex-col max-w-sm">
@@ -98,7 +103,9 @@ const SettingsPage = () => {
         </div>
 
         {/* Cho phép người lạ kết bạn */}
-        <h2 className="text-base sm:text-[17px] font-semibold text-black ml-2 sm:ml-3">Cho phép người lạ kết bạn</h2>
+        <h2 className="text-base sm:text-[1.0625rem] font-semibold text-black ml-2 sm:ml-3">
+          Cho phép người lạ kết bạn
+        </h2>
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <CheckboxItem _id="qr" label="Mã QR của tôi" />
           <CheckboxItem _id="group" label="Nhóm chung" />

@@ -89,7 +89,7 @@ export default function GroupsList() {
           <div className="relative flex-1">
             <button
               onClick={() => setOpenSort(!openSort)}
-              className="flex items-center justify-between w-full px-3 py-2 border border-gray-300 rounded-md text-sm md:text-base"
+              className="flex cursor-pointer items-center justify-between w-full px-3 py-2 border border-gray-300 rounded-md text-sm md:text-base"
             >
               <div className="flex items-center space-x-2">
                 <img src={IconArrow.src} alt="Arrow" className="w-3 h-3" />

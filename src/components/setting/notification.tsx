@@ -17,11 +17,11 @@ const NotificationSettings = () => {
     <>
       {/* --- Cài đặt thông báo --- */}
       <div className="sm:ml-5 mb-4">
-        <h2 className="text-[18px] font-bold text-gray-800">Cài đặt thông báo</h2>
-        <p className="text-[13px] text-gray-500 mt-1">Nhận được thông báo mỗi khi có tin nhắn mới</p>
+        <h2 className="text-[1.125rem] font-bold text-gray-800">Cài đặt thông báo</h2>
+        <p className="text-[0.8125rem] text-gray-500 mt-1">Nhận được thông báo mỗi khi có tin nhắn mới</p>
       </div>
 
-      <div className="p-4 sm:p-6 w-full sm:w-[600px] mx-auto bg-white rounded-xl shadow-lg mb-6">
+      <div className="p-4 sm:p-6 w-full sm:max-w-lg lg:w-[37.5rem] xl:w-[43.75rem] mx-auto bg-white rounded-xl shadow-lg mb-6">
         {/* Responsive flex */}
         <div className="flex flex-col sm:flex-row sm:justify-around sm:space-x-4 space-y-4 sm:space-y-0">
           <NotificationOption
@@ -40,8 +40,8 @@ const NotificationSettings = () => {
       </div>
 
       {/* --- Âm thanh thông báo --- */}
-      <h3 className="text-[18px] font-bold text-gray-800 sm:ml-5 mb-4">Âm thanh thông báo</h3>
-      <div className="p-4 sm:p-6 w-full sm:w-[600px] mx-auto bg-white rounded-xl shadow-lg mb-6">
+      <h3 className="text-[1.125rem] font-bold text-gray-800 sm:ml-5 mb-4">Âm thanh thông báo</h3>
+      <div className="p-4 sm:p-6 w-full sm:max-w-lg lg:w-[37.5rem] xl:w-[43.75rem] mx-auto bg-white rounded-xl shadow-lg mb-6">
         <div className="flex justify-between items-center">
           <p className="text-gray-700">Phát âm thanh khi có tin nhắn & thông báo mới</p>
           <ToggleSwitch checked={isSoundEnabled} onChange={setIsSoundEnabled} />

@@ -54,7 +54,7 @@ export default function MentionMenu({
                 height={40}
                 src={getProxyUrl(userAvatar)}
                 alt={userName}
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-5 h-5 sm:w-10 sm:h-10 rounded-full object-cover"
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 text-white flex items-center justify-center font-semibold">

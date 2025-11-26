@@ -12,7 +12,7 @@ import type { GroupConversation } from '@/types/Group';
 export interface GlobalSearchMessage {
   _id: string;
   content?: string;
-  type: 'text' | 'image' | 'file' | 'sticker';
+  type: 'text' | 'image' | 'file' | 'sticker' | 'video';
   fileName?: string;
   timestamp: number;
   sender: string;
@@ -77,7 +77,6 @@ export default function HomeOverlays({
           searchTerm={globalSearchTerm}
           results={globalSearchResults}
           allUsers={allUsers}
-          currentUser={currentUser}
           onClose={onCloseGlobalSearch}
           onSearch={onSearch}
           onNavigateToMessage={onNavigateToMessage}

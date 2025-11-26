@@ -31,7 +31,7 @@ export default function PinnedMessagesSection({
       {allPinnedMessages.length > 0 && (
         <button
           onClick={onOpenPinnedList}
-          className="flex items-center gap-1 rounded-lg shadow-lg p-2 m-2 bg-white hover:cursor-pointer "
+          className="flex items-center gap-1 rounded-lg shadow-lg p-2 m-2 bg-white hover:cursor-pointer text-[0.625rem] sm:text-[0.75rem]"
           title={`Xem ${allPinnedMessages.length} tin nhắn đã ghim`}
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 rotate-45">
@@ -53,5 +53,3 @@ export default function PinnedMessagesSection({
     </>
   );
 }
-
-

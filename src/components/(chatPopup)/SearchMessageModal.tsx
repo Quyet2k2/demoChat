@@ -13,51 +13,48 @@ interface SearchSidebarProps {
   getSenderName: (sender: User | string) => string;
 }
 
-const SearchSidebar: React.FC<SearchSidebarProps> = ({
-                                                       isOpen,
-                                                       onClose,
-                                                       roomId,
-                                                       onJumpToMessage,
-                                                       getSenderName,
-                                                     }) => {
+const SearchSidebar: React.FC<SearchSidebarProps> = ({ isOpen, onClose, roomId, onJumpToMessage, getSenderName }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Message[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const fetchSearchResults = useCallback(async (query: string) => {
-    if (!query.trim() || !roomId) {
+  const fetchSearchResults = useCallback(
+    async (query: string) => {
+      if (!query.trim() || !roomId) {
+        setSearchResults([]);
+        return;
+      }
+      setIsSearching(true);
       setSearchResults([]);
-      return;
-    }
-    setIsSearching(true);
-    setSearchResults([]);
 
-    try {
-      const res = await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'read',
-          filters: {
-            roomId,
-            searchQuery: query.trim(),
-            isRecalled: { $ne: true },
-            isDeleted: { $ne: true },
-          },
-          limit: 100,
-          sort: { timestamp: -1 },
-        }),
-      });
-      const data = await res.json();
-      setSearchResults(data.data || []);
-    } catch (error) {
-      console.error('Fetch search results error:', error);
-      setSearchResults([]);
-    } finally {
-      setIsSearching(false);
-    }
-  }, [roomId]);
-// 🔥 THÊM LOGIC DEBOUNCING DÙNG useEffect
+      try {
+        const res = await fetch('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'read',
+            filters: {
+              roomId,
+              searchQuery: query.trim(),
+              isRecalled: { $ne: true },
+              isDeleted: { $ne: true },
+            },
+            limit: 100,
+            sort: { timestamp: -1 },
+          }),
+        });
+        const data = await res.json();
+        setSearchResults(data.data || []);
+      } catch (error) {
+        console.error('Fetch search results error:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    },
+    [roomId],
+  );
+  // 🔥 THÊM LOGIC DEBOUNCING DÙNG useEffect
   useEffect(() => {
     // 1. Nếu searchTerm rỗng, xóa kết quả ngay lập tức
     if (!searchTerm.trim()) {
@@ -78,7 +75,6 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
 
   if (!isOpen) return null;
 
-
   const handleJump = (messageId: string) => {
     onJumpToMessage(messageId);
     // Tùy chọn: Đóng sidebar tìm kiếm sau khi nhảy
@@ -94,7 +90,8 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
   return (
     // Sử dụng cơ chế fixed/static tương tự ChatInfoPopup
     <div
-      className={`bg-white shadow-lg w-full sm:w-[350px] flex flex-col h-full overflow-y-auto relative transition-transform duration-300 transform
+      className={
+        `bg-white shadow-lg w-full sm:w-[21.875rem] flex flex-col h-full overflow-y-auto relative transition-transform duration-300 transform
         ${isOpen ? 'translate-x-0' : 'translate-x-full'}` // Thêm hiệu ứng slide
       }
     >
@@ -102,11 +99,7 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
       <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
         <h2 className="text-xl font-bold text-black">Tìm kiếm tin nhắn</h2>
         {/* Nút đóng (Sử dụng icon ArrowRight để trông như đóng tab) */}
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-gray-200 rounded-full"
-          title="Đóng tìm kiếm"
-        >
+        <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full" title="Đóng tìm kiếm">
           <Image
             src={ArrowRightICon}
             alt="Close"
@@ -135,20 +128,29 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
             disabled={isSearching || !searchTerm.trim()}
           >
             {isSearching ? (
-              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
-            ) : 'Tìm'}
+            ) : (
+              'Tìm'
+            )}
           </button>
         </div>
       </div>
 
       {/* Kết quả Tìm kiếm */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
-        {isSearching && (
-          <p className="text-center text-blue-500 text-sm">Đang tìm kiếm...</p>
-        )}
+        {isSearching && <p className="text-center text-blue-500 text-sm">Đang tìm kiếm...</p>}
 
         {!isSearching && searchTerm.trim() && searchResults.length === 0 && (
           <p className="text-center text-gray-500 text-sm">Không tìm thấy tin nhắn nào khớp với: **{searchTerm}**</p>
@@ -158,14 +160,14 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
           <p className="text-center text-gray-400 text-sm">Nhập từ khóa để tìm kiếm trong hội thoại này.</p>
         )}
 
-        {searchResults.map((msg) => {
+        {searchResults.map((msg: Message) => {
           const isRecalled = msg.isRecalled === true;
           const contentDisplay = isRecalled
             ? 'Tin nhắn đã bị thu hồi'
-            : (msg.content || `[${msg.type.charAt(0).toUpperCase() + msg.type.slice(1)}]`);
+            : msg.content || `[${msg.type.charAt(0).toUpperCase() + msg.type.slice(1)}]`;
 
-          // Lấy tên người gửi (API trả về sender là object hoặc string, dùng getSenderName)
-          const senderName = getSenderName(msg.sender as any);
+          // Lấy tên người gửi (sender được khai báo là string ID trong Message)
+          const senderName = getSenderName(msg.sender);
 
           return (
             <div
@@ -174,13 +176,14 @@ const SearchSidebar: React.FC<SearchSidebarProps> = ({
               onClick={() => handleJump(msg._id)}
             >
               <p className="text-xs text-blue-600 font-semibold">
-                {senderName} • {new Date(msg.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                {senderName} •{' '}
+                {new Date(msg.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
               </p>
               <p className={`text-sm mt-1 line-clamp-2 ${isRecalled ? 'italic text-gray-500' : 'text-gray-800'}`}>
                 {contentDisplay}
               </p>
             </div>
-          )
+          );
         })}
       </div>
     </div>

@@ -202,7 +202,7 @@ export default function GlobalSearchModal({
 
         <SearchTabs activeTab={activeTab} tabs={tabs} onTabChange={setActiveTab} searchTerm={localSearchTerm} />
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
           <SearchEmptyState isSearching={isSearching} searchTerm={localSearchTerm} hasResults={hasResults} />
 
           {hasResults && !isSearching && (

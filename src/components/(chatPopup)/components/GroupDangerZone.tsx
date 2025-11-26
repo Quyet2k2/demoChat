@@ -20,7 +20,7 @@ export default function GroupDangerZone({
   if (!isGroup) return null;
 
   return (
-    <div className="mt-4 flex justify-center gap-8 items-start text-center border-t border-gray-100 pt-4 px-4">
+    <div className="mt-4 flex justify-center gap-8 items-start text-center border-t border-gray-100 py-4 px-4">
       {canLeaveGroup && (
         <button
           type="button"

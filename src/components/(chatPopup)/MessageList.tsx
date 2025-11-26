@@ -92,7 +92,7 @@ export default function MessageList({
               return (
                 <div key={msg._id || index} className="flex justify-center my-3">
                   <div className="bg-gray-100 px-3 py-1 rounded-full shadow-sm">
-                    <p className="text-xs text-gray-500 sm:font-medium text-[0.5rem]">{contentDisplay}</p>
+                    <p className="text-xs text-gray-500 sm:font-medium text-[0.625rem]">{contentDisplay}</p>
                   </div>
                 </div>
               );
@@ -140,7 +140,7 @@ export default function MessageList({
                       onReply(msg);
                     }}
                     // order-3 khi là người khác (ở cuối), order-1 khi là tôi (ở cuối, nhưng bị flex-row-reverse đảo)
-                    className={`invisible group-hover:visible self-end p-1 text-gray-400 flex items-center justify-center hover:text-blue-500 transition-colors 
+                    className={`invisible group-hover:visible self-center p-1 text-gray-400 flex items-center justify-center hover:text-blue-500 transition-colors 
                       ${isMe ? 'order-1' : 'order-3'}
                     `}
                     title="Phản hồi"
@@ -190,7 +190,7 @@ export default function MessageList({
                         ${(msg.type === 'sticker' && !isRecalled) || isVideo ? '!bg-transparent !shadow-none !p-0' : ''}
                         ${!isGrouped ? (isMe ? 'rounded-br-none' : 'rounded-bl-none') : ''}
                         ${isRecalled ? '!bg-gray-200 !text-gray-500 italic border border-gray-300' : ''}
-                        ${msg.type === 'text' ? 'text-[0.625rem] sm:text-[0.75rem]' : ''}
+                        ${msg.type === 'text' ? 'text-[0.625rem] sm:text-[1.125rem]' : ''}
                       `}
                   >
                     {isGroup && !isMe && !isGrouped && !isRecalled && (
@@ -244,12 +244,12 @@ export default function MessageList({
                             )}
 
                             {msg.type === 'sticker' && msg.fileUrl && (
-                              <Image
+                              <img
                                 src={msg.fileUrl}
                                 alt="Sticker"
                                 width={128}
                                 height={128}
-                                className="w-32 h-32 object-contain hover:scale-105 transition-transform"
+                                className="w-20 h-20 object-contain hover:scale-105 transition-transform"
                               />
                             )}
 
@@ -305,7 +305,7 @@ export default function MessageList({
                                   <p className="text-xs sm:font-medium text-[0.5rem] text-gray-800 truncate">
                                     {msg.fileName || 'Tập tin đính kèm'}
                                   </p>
-                                  <p className="text-[0.625rem] sm:text-[0.75rem] text-gray-500 truncate">
+                                  <p className="text-[0.625rem] sm:text-[0.875rem] text-gray-500 truncate">
                                     {msg.fileUrl}
                                   </p>
                                 </div>

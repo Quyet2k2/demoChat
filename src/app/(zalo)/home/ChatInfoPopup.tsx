@@ -287,7 +287,7 @@ export default function ChatInfoPopup({
   return (
     <div
       ref={popupRef}
-      className="bg-white shadow-lg w-full sm:w-[21.875rem] flex flex-col h-full overflow-y-auto relative"
+      className="bg-white shadow-lg w-full sm:w-[21.875rem] flex flex-col h-full overflow-y-auto relative custom-scrollbar"
     >
       <ChatInfoHeader onClose={onClose} />
 

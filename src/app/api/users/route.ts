@@ -6,6 +6,8 @@ import { Message, MESSAGES_COLLECTION_NAME } from '@/types/Message';
 import { signJWT } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
 
+export const runtime = 'nodejs';
+
 type UserSort = { field: keyof User; order?: 'asc' | 'desc' } | Array<{ field: keyof User; order?: 'asc' | 'desc' }>;
 
 interface ToggleChatStatusPayload {
@@ -305,17 +307,17 @@ export async function POST(req: NextRequest) {
 
         // 3. Đăng nhập thành công
         const token = await signJWT({
-          _id: found._id,
-          username: found.username,
-          name: found.name,
+          _id: String(found._id),
+          username: String(found.username || ''),
+          name: String(found.name || ''),
         });
 
         const res = NextResponse.json({
           success: true,
           user: {
-            _id: found._id,
-            name: found.name,
-            username: found.username,
+            _id: String(found._id),
+            name: String(found.name || ''),
+            username: String(found.username || ''),
             avatar: found.avatar,
             role: found.role,
             department: found.department,

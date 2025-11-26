@@ -425,7 +425,7 @@ export default function Sidebar({
       {/* 🔥 Filter Buttons - CHỈ hiện khi KHÔNG search */}
       {!isSearchActive && <MessageFilter filterType={filterType} setFilterType={setFilterType} counts={filterCounts} />}
       {/* Content Area - Chat List hoặc Search Results */}
-      <div className="flex-1 overflow-y-auto bg-white">
+      <div className="flex-1 overflow-y-auto bg-white custom-scrollbar">
         {/* Hiển thị khi ĐANG TÌM KIẾM */}
         {isSearchActive ? (
           <SearchResults

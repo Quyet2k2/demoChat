@@ -29,7 +29,7 @@ export default function MessageFilter({ filterType, setFilterType, counts }: Mes
       : (['all', 'unread', 'read'] as FilterType[]);
 
   return (
-    <div className="p-2 border-b border-gray-200 flex space-x-2 bg-white overflow-x-auto whitespace-nowrap">
+    <div className="p-2 border-b border-gray-200 flex space-x-2 bg-white custom-scrollbar overflow-x-auto whitespace-nowrap">
       {filters.map((filter) => (
         <button
           key={filter}

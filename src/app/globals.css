@@ -33,3 +33,23 @@ html {
 .no-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari */
 }
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af #f3f4f6;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 0.125rem;
+  height: 0.125rem;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #9ca3af;
+  border-radius: 9999px;
+  border: 0.125rem solid #f3f4f6;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}

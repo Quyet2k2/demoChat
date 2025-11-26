@@ -19,7 +19,7 @@ export default function ChatQuickActions({
   onCreateGroup,
 }: ChatQuickActionsProps) {
   return (
-    <div className="flex justify-around items-start text-center">
+    <div className="flex justify-around items-start text-center py-4 ">
       {/* Ghim/Bỏ ghim */}
       <div className="flex flex-col items-center w-20">
         <div
@@ -71,5 +71,3 @@ export default function ChatQuickActions({
     </div>
   );
 }
-
-

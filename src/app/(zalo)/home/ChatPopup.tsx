@@ -810,7 +810,7 @@ export default function ChatWindow({
             getSenderName={getSenderName}
           />
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-gray-100 flex flex-col">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-gray-100 flex flex-col custom-scrollbar">
             <MessageList
               messagesGrouped={messagesGrouped}
               messages={messages}

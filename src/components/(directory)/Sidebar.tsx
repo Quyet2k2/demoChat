@@ -60,7 +60,7 @@ export default function Sidebar({ selectedMenu, onMenuClick }: SidebarProps) {
       </div>
 
       {/* Menu Items */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         {menuItems.map((item) => (
           <button
             key={item.name}

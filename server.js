@@ -1,7 +1,7 @@
 // server.js
 import { Server } from 'socket.io';
 
-const io = new Server(3001, {
+const io = new Server(process.env.PORT || 3001, {
   cors: {
     origin: '*',
     methods: ['GET', 'POST'],
@@ -107,4 +107,4 @@ io.on('connection', (socket) => {
   });
 });
 
-console.log('Socket.io server running on port 3001');
+console.log(`Socket.io server running on port ${process.env.PORT || 3001}`);

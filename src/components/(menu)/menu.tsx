@@ -149,7 +149,13 @@ export default function SidebarMenu() {
             <div className="absolute left-14 top-0 w-64 bg-white text-black shadow-2xl rounded-xl py-2 z-50">
               {/* Header nhỏ trong menu: tên + email/số điện thoại nếu có */}
               <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full overflow-hidden bg-blue-500 text-white flex items-center justify-center text-sm font-semibold">
+                <div
+                  className="w-9 h-9 rounded-full overflow-hidden bg-blue-500 text-white flex items-center justify-center text-sm font-semibold hover:cursor-pointer"
+                  onClick={() => {
+                    setShowSettings(false);
+                    router.push('/profile');
+                  }}
+                >
                   {userInfo?.avatar ? (
                     <Image
                       src={getProxyUrl(userInfo.avatar)}
@@ -162,7 +168,13 @@ export default function SidebarMenu() {
                     (userInfo?.name || 'U').charAt(0).toUpperCase()
                   )}
                 </div>
-                <div className="min-w-0">
+                <div
+                  className="min-w-0 hover:cursor-pointer"
+                  onClick={() => {
+                    setShowSettings(false);
+                    router.push('/profile');
+                  }}
+                >
                   <p className="text-sm font-semibold text-gray-900 truncate">{userInfo?.name || 'Tài khoản Hupuna'}</p>
                   <p className="text-xs text-gray-500 truncate">{userInfo?.username}</p>
                 </div>

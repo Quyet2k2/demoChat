@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 
-const SECRET_KEY = 'mat-khau-nay-phai-cuc-ky-bi-mat-123';
+const SECRET_KEY = process.env.SECRET_KEY || '';
 const ALG = 'HS256';
 
 function toBase64(input: Uint8Array | string): string {
@@ -55,6 +55,22 @@ export async function signJWT<T extends Record<string, unknown>>(payload: T): Pr
   const header = { alg: ALG, typ: 'JWT' };
   const iat = Math.floor(Date.now() / 1000);
   const exp = iat + 30 * 24 * 3600;
+  const body = { ...payload, iat, exp };
+  const encodedHeader = base64urlEncode(JSON.stringify(header));
+  const encodedPayload = base64urlEncode(JSON.stringify(body));
+  const data = `${encodedHeader}.${encodedPayload}`;
+  const sig = await hmacSha256(data, SECRET_KEY);
+  const signature = base64urlEncode(sig);
+  return `${data}.${signature}`;
+}
+
+export async function signEphemeralJWT<T extends Record<string, unknown>>(
+  payload: T,
+  ttlSeconds: number,
+): Promise<string> {
+  const header = { alg: ALG, typ: 'JWT' };
+  const iat = Math.floor(Date.now() / 1000);
+  const exp = iat + Math.max(1, Math.floor(ttlSeconds));
   const body = { ...payload, iat, exp };
   const encodedHeader = base64urlEncode(JSON.stringify(header));
   const encodedPayload = base64urlEncode(JSON.stringify(body));

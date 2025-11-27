@@ -19,6 +19,9 @@ export default function ProfilePage() {
 
   const [editForm, setEditForm] = useState({ name: '', department: '', status: '' });
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [ssoTarget, setSsoTarget] = useState('');
+  const [ssoLink, setSsoLink] = useState<string | null>(null);
+  const [isIssuingSSO, setIsIssuingSSO] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -77,6 +80,12 @@ export default function ProfilePage() {
       }
     };
     void loadUser();
+    try {
+      if (typeof window !== 'undefined' && !ssoTarget) {
+        const origin = window.location.origin;
+        setSsoTarget(`${origin}/api/sso/consume?next=/mini`);
+      }
+    } catch {}
     return () => {
       mounted = false;
     };
@@ -232,6 +241,59 @@ export default function ProfilePage() {
     } catch {}
   };
 
+  const issueSSO = async () => {
+    if (!ssoTarget) return;
+    try {
+      setIsIssuingSSO(true);
+      const u = new URL(ssoTarget);
+      const aud = u.hostname;
+      const res = await fetch(
+        `/api/sso/issue?redirect=${encodeURIComponent(ssoTarget)}&aud=${encodeURIComponent(aud)}`,
+        { method: 'GET' },
+      );
+      const json = await res.json();
+      if (json && json.success) {
+        setSsoLink(json.url || null);
+      }
+    } catch {
+    } finally {
+      setIsIssuingSSO(false);
+    }
+  };
+
+  const quickTestSSO = async () => {
+    try {
+      setIsIssuingSSO(true);
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      if (!origin) return;
+      const target = `${origin}/api/sso/consume?next=/mini`;
+      const u = new URL(target);
+      const aud = u.hostname;
+      const res = await fetch(`/api/sso/issue?redirect=${encodeURIComponent(target)}&aud=${encodeURIComponent(aud)}`, {
+        method: 'GET',
+      });
+      const json = await res.json();
+      if (json && json.success && json.url) {
+        window.location.href = json.url as string;
+      }
+    } catch {
+    } finally {
+      setIsIssuingSSO(false);
+    }
+  };
+
+  const copySSOLink = async () => {
+    if (!ssoLink) return;
+    try {
+      await navigator.clipboard.writeText(ssoLink);
+    } catch {}
+  };
+
+  const openSSO = () => {
+    if (!ssoLink) return;
+    window.location.href = ssoLink;
+  };
+
   return (
     <main className="min-h-screen w-full bg-gradient-to-b from-[#f0f6ff] to-white">
       {/* COVER BANNER */}
@@ -298,6 +360,60 @@ export default function ProfilePage() {
               <InfoRow label="Facebook" value="@nguyenvana.fb" />
               <InfoRow label="Instagram" value="@nguyenvana.ig" />
               <InfoRow label="LinkedIn" value="linkedin.com/in/nguyenvana" />
+            </div>
+          </div>
+
+          <div className="pt-5">
+            <h2 className="text-lg font-semibold text-[#1b1b1b]">Đăng nhập SSO hệ thống khác</h2>
+            <div className="mt-4 grid gap-3">
+              <input
+                type="url"
+                value={ssoTarget}
+                onChange={(e) => setSsoTarget(e.target.value)}
+                placeholder="https://site-dich.com/sso/callback"
+                className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={issueSSO}
+                  disabled={isIssuingSSO || !ssoTarget}
+                  className={`px-3 py-2 rounded-lg text-sm text-white ${
+                    isIssuingSSO || !ssoTarget ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
+                >
+                  {isIssuingSSO ? 'Đang tạo...' : 'Tạo link SSO'}
+                </button>
+                <button
+                  onClick={quickTestSSO}
+                  disabled={isIssuingSSO}
+                  className={`px-3 py-2 rounded-lg text-sm text-white ${
+                    isIssuingSSO ? 'bg-gray-400' : 'bg-indigo-600 hover:bg-indigo-700'
+                  }`}
+                >
+                  Test nhanh
+                </button>
+                <button
+                  onClick={copySSOLink}
+                  disabled={!ssoLink}
+                  className={`px-3 py-2 rounded-lg text-sm ${!ssoLink ? 'bg-gray-200 text-gray-500' : 'bg-gray-100'}`}
+                >
+                  Sao chép link
+                </button>
+                <button
+                  onClick={openSSO}
+                  disabled={!ssoLink}
+                  className={`px-3 py-2 rounded-lg text-sm text-white ${
+                    !ssoLink ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
+                  }`}
+                >
+                  Mở link
+                </button>
+              </div>
+              {ssoLink ? (
+                <div className="text-xs break-all text-gray-600">{ssoLink}</div>
+              ) : (
+                <div className="text-xs text-gray-400">Nhập URL đích và tạo link SSO</div>
+              )}
             </div>
           </div>
         </div>

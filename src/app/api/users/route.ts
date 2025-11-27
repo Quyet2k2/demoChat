@@ -3,7 +3,8 @@ import { addRow, deleteByField, getAllRows, getCollection, getRowByIdOrCode, upd
 import { ObjectId } from 'mongodb';
 import { User, USERS_COLLECTION_NAME } from '@/types/User';
 import { Message, MESSAGES_COLLECTION_NAME } from '@/types/Message';
-import { signJWT } from '@/lib/auth';
+import { signJWT, signEphemeralJWT } from '@/lib/auth';
+import { createSession, fingerprintFromHeaders } from '@/lib/session';
 // import bcrypt from 'bcryptjs'; // ❌ COMMENT: Không sử dụng bcrypt nữa
 
 export const runtime = 'nodejs';
@@ -269,11 +270,24 @@ export async function POST(req: NextRequest) {
         //   );
         // }
 
-        // ✅ Đăng nhập thành công (password đã match qua filters)
+        const fp = fingerprintFromHeaders({
+          'user-agent': req.headers.get('user-agent') || '',
+          'accept-language': req.headers.get('accept-language') || '',
+        });
+        const sid = await createSession({
+          userId: String(found._id),
+          deviceName: 'web',
+          headers: {
+            'user-agent': req.headers.get('user-agent') || '',
+            'accept-language': req.headers.get('accept-language') || '',
+          },
+        });
         const token = await signJWT({
           _id: String(found._id),
           username: String(found.username || ''),
           name: String(found.name || ''),
+          sid,
+          fp,
         });
 
         const res = NextResponse.json({
@@ -297,6 +311,31 @@ export async function POST(req: NextRequest) {
           sameSite: 'lax',
           maxAge: 30 * 24 * 3600,
         });
+        res.cookies.set('sid', sid, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          path: '/',
+          sameSite: 'lax',
+          maxAge: 7 * 24 * 3600,
+        });
+
+        const refreshToken = await signEphemeralJWT(
+          {
+            purpose: 'refresh',
+            sub: String(found._id),
+            username: String(found.username || ''),
+            name: String(found.name || ''),
+            fp,
+          },
+          90 * 24 * 3600,
+        );
+        res.cookies.set('refresh_token', refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          path: '/',
+          sameSite: 'lax',
+          maxAge: 90 * 24 * 3600,
+        });
 
         return res;
       }
@@ -304,6 +343,20 @@ export async function POST(req: NextRequest) {
       case 'logout': {
         const res = NextResponse.json({ success: true });
         res.cookies.set('session_token', '', {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 0,
+        });
+        res.cookies.set('sid', '', {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 0,
+        });
+        res.cookies.set('refresh_token', '', {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',

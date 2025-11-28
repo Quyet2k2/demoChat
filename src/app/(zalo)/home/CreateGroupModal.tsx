@@ -229,7 +229,7 @@ export default function CreateGroupModal({
 
                         <div>
                           <div className="flex-1">
-                            <p className="text-sm font-semibold text-gray-900">{user.name}</p>
+                            <p className="text-sm font-semibold text-gray-900 px-1">{user.name}</p>
                           </div>
 
                           {isAlreadyMember && mode === 'add' && (

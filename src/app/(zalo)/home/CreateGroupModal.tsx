@@ -13,11 +13,6 @@ interface Props {
   currentUser: User;
   allUsers: User[];
   onClose: () => void;
-  /**
-   * Được gọi sau khi tạo nhóm / thêm thành viên xong.
-   * - Với tạo nhóm: nhận group mới để có thể auto chọn mở chat.
-   * - Với thêm thành viên: không cần tham số.
-   */
   onGroupCreated: (group?: GroupConversation) => void;
   mode?: 'create' | 'add';
   conversationId?: string;
@@ -62,7 +57,7 @@ export default function CreateGroupModal({
   });
 
   const selectedUsers = React.useMemo(
-    () => allUsers.filter((u) => selectedMembers.includes(u._id)),
+    () => allUsers.filter((u) => selectedMembers.includes(String(u._id))),
     [allUsers, selectedMembers],
   );
 
@@ -177,17 +172,17 @@ export default function CreateGroupModal({
 
                 <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-100">
                   {groupedUsers[letter].map((user) => {
-                    const userIdStr = user._id;
+                    const userIdStr = String(user._id);
                     const isAlreadyMember = existingMemberIds.includes(userIdStr);
                     const isSelected = selectedMembers.includes(userIdStr);
-                    const isMe = userIdStr === currentUser._id;
+                    const isMe = userIdStr === String(currentUser._id);
 
                     return (
                       <label
                         key={user._id}
                         className={`flex items-center p-2 cursor-pointer transition-colors
                           ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'} ${
-                            isAlreadyMember || isMe ? 'bg-gray-50 opacity-60 cursor-not-allowed' : ''
+                            (mode === 'add' && isAlreadyMember) || isMe ? 'bg-gray-50 opacity-60 cursor-not-allowed' : ''
                           }
                                                 `}
                       >
@@ -195,7 +190,7 @@ export default function CreateGroupModal({
                           <input
                             type="checkbox"
                             checked={isSelected}
-                            disabled={isAlreadyMember || isMe}
+                            disabled={(mode === 'add' && isAlreadyMember) || isMe}
                             onChange={() => handleMemberToggle(userIdStr)}
                             className="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded checked:bg-blue-600 checked:border-blue-600 transition-all"
                           />
@@ -236,7 +231,7 @@ export default function CreateGroupModal({
                             <span className="text-xs text-gray-400 font-medium">Đã tham gia</span>
                           )}
                         </div>
-                        {isMe && <span className="text-xs text-gray-400 font-medium">Bạn</span>}
+                        {isMe && <span className="text-xs text-gray-400 font-medium px-1">Bạn</span>}
                       </label>
                     );
                   })}
@@ -270,7 +265,7 @@ export default function CreateGroupModal({
               ? 'Đang xử lý...'
               : mode === 'create'
                 ? `Tạo (${selectedMembers.length})`
-                : `Thêm (${selectedMembers.length - existingMemberIds.length})`}
+                : `Thêm (${selectedMembers.filter((id) => !existingMemberIds.includes(id)).length})`}
           </button>
         </div>
       </div>

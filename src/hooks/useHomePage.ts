@@ -231,7 +231,6 @@ export function useHomePage() {
 
   const handleNavigateToMessage = useCallback(
     (message: GlobalSearchMessage) => {
-      console.log('💬 ========== Navigate to message START ==========');
       let targetChat: ChatItem | null = null;
       const myId = String(currentUser?._id);
 
@@ -263,12 +262,10 @@ export function useHomePage() {
         setScrollToMessageId(String(message._id));
         handleSelectChat(targetChat); // Tái sử dụng hàm select/reset unread
 
-        console.log('🎯 SUCCESS! Opening chat and setting scroll ID.');
       } else {
         // Fallback nếu không tìm thấy: Refetch và thử lại
         console.warn('❌ Chat not found locally. Refetching data...');
         fetchAllData().then(() => {
-          console.log('🔄 Refetch complete. User must click again or perform complex retry logic.');
           // Thường sau khi refetch, người dùng phải click lại hoặc cần một logic retry phức tạp
           alert('Không tìm thấy cuộc trò chuyện. Đã tải lại dữ liệu, vui lòng thử lại.');
         });

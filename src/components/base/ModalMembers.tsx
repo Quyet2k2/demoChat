@@ -3,9 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { HiX, HiSearch, HiShieldCheck, HiUserGroup, HiCheck, HiChevronDown } from 'react-icons/hi';
+import { HiX, HiSearch, HiShieldCheck, HiCheck, HiChevronDown } from 'react-icons/hi';
 
-import SearchIcon from '@/public/icons/icon-search.svg';
 import CreateGroupModal from '../../app/(zalo)/home/CreateGroupModal';
 import { User } from '../../types/User';
 import { MemberInfo, GroupRole } from '../../types/Group';
@@ -187,36 +186,36 @@ export default function GroupMembersModal({
     const targetMember = localMembers.find((m) => compareIds(m._id || m.id, targetUserId));
     const targetName = targetMember ? targetMember.name : 'Thành viên';
 
-    type GroupActionPayload =
-      | {
-          conversationId: string;
-          targetUserId: string;
-          action: 'kickMember';
-          _id?: string;
-        }
-      | {
-          conversationId: string;
-          targetUserId: string;
-          action: 'changeRole';
-          data: { role: 'ADMIN' | 'MEMBER' };
-          _id: string;
-        };
+    // type GroupActionPayload =
+    //   | {
+    //       conversationId: string;
+    //       targetUserId: string;
+    //       action: 'kickMember';
+    //       _id?: string;
+    //     }
+    //   | {
+    //       conversationId: string;
+    //       targetUserId: string;
+    //       action: 'changeRole';
+    //       data: { role: 'ADMIN' | 'MEMBER' };
+    //       _id: string;
+    //     };
 
-    const payload: GroupActionPayload =
-      action === 'kick'
-        ? {
-            conversationId,
-            targetUserId,
-            action: 'kickMember',
-            _id: myId,
-          }
-        : {
-            conversationId,
-            targetUserId,
-            action: 'changeRole',
-            data: { role: action === 'promote' ? 'ADMIN' : 'MEMBER' },
-            _id: myId,
-          };
+    // const payload: GroupActionPayload =
+    //   action === 'kick'
+    //     ? {
+    //         conversationId,
+    //         targetUserId,
+    //         action: 'kickMember',
+    //         _id: myId,
+    //       }
+    //     : {
+    //         conversationId,
+    //         targetUserId,
+    //         action: 'changeRole',
+    //         data: { role: action === 'promote' ? 'ADMIN' : 'MEMBER' },
+    //         _id: myId,
+    //       };
 
     try {
       const res = await fetch('/api/groups', {

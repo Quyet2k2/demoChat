@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function MiniSsoCallback() {
+function CallbackContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -25,6 +25,14 @@ export default function MiniSsoCallback() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function MiniSsoCallback() {
+  return (
+    <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center">Loading...</div>}>
+      <CallbackContent />
+    </Suspense>
   );
 }
 

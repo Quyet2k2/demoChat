@@ -611,7 +611,8 @@ export default function ChatWindow({
       setMessages(asc);
       const first = asc[0]?.timestamp ?? null;
       setOldestTs(first ?? null);
-      const total = typeof (data as { total?: number }).total === 'number' ? (data as { total?: number }).total : undefined;
+      const total =
+        typeof (data as { total?: number }).total === 'number' ? (data as { total?: number }).total : undefined;
       setHasMore(total ? asc.length < total : raw.length === 20);
       setInitialLoading(false);
     } catch (error) {
@@ -630,7 +631,6 @@ export default function ChatWindow({
     void fetchMessages();
     void fetchPinnedMessages();
     initialScrolledRef.current = false;
-
   }, [roomId, fetchMessages, fetchPinnedMessages]);
 
   const allUsersMap = useMemo(() => {
@@ -843,85 +843,83 @@ export default function ChatWindow({
     await sendMessageProcess(newMsg);
   };
   // 🔥 Helper function để normalize ID
-function normalizeId(value: unknown): string {
-  if (!value) return '';
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number') return String(value);
-  if (typeof value === 'object' && value !== null) {
-    if ('_id' in value) return normalizeId(value._id);
-    if ('id' in value) return normalizeId(value.id);
+  function normalizeId(value: unknown): string {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return String(value);
+    if (typeof value === 'object' && value !== null) {
+      if ('_id' in value) return normalizeId(value._id);
+      if ('id' in value) return normalizeId(value.id);
+    }
+    return String(value);
   }
-  return String(value);
-}
 
-// 🔥 Helper function để so sánh ID
-function compareIds(id1: unknown, id2: unknown): boolean {
-  const normalized1 = normalizeId(id1);
-  const normalized2 = normalizeId(id2);
-  
-  if (normalized1 === normalized2) return true;
-  
-  // So sánh cả dạng number
-  const num1 = Number(normalized1);
-  const num2 = Number(normalized2);
-  if (!isNaN(num1) && !isNaN(num2) && num1 === num2) return true;
-  
-  return false;
-}
+  // 🔥 Helper function để so sánh ID
+  function compareIds(id1: unknown, id2: unknown): boolean {
+    const normalized1 = normalizeId(id1);
+    const normalized2 = normalizeId(id2);
+
+    if (normalized1 === normalized2) return true;
+
+    // So sánh cả dạng number
+    const num1 = Number(normalized1);
+    const num2 = Number(normalized2);
+    if (!isNaN(num1) && !isNaN(num2) && num1 === num2) return true;
+
+    return false;
+  }
   const getSenderInfo = (sender: User | string) => {
-  const senderId = normalizeId(sender);
+    const senderId = normalizeId(sender);
 
-
-  // 1. Check currentUser trước
-  if (compareIds(currentUser._id, senderId)) {
-    return {
-      _id: senderId,
-      name: currentUser.name || 'Bạn',
-      avatar: currentUser.avatar ?? null,
-    };
-  }
-
-  // 2. Tìm trong allUsers array
-  const foundUser = allUsers.find(u => compareIds(u._id || u.id, senderId));
-  if (foundUser) {
-    return {
-      _id: senderId,
-      name: foundUser.name || 'Người dùng',
-      avatar: foundUser.avatar ?? null,
-    };
-  }
-
-  // 3. Tìm trong activeMembers (cho group chat)
-  if (isGroup && Array.isArray(activeMembers)) {
-    const foundMember = activeMembers.find(m => compareIds(m._id || m.id, senderId));
-    if (foundMember) {
+    // 1. Check currentUser trước
+    if (compareIds(currentUser._id, senderId)) {
       return {
         _id: senderId,
-        name: foundMember.name || 'Thành viên',
-        avatar: foundMember.avatar ?? null,
+        name: currentUser.name || 'Bạn',
+        avatar: currentUser.avatar ?? null,
       };
     }
-  }
 
-  // 4. Nếu sender là object có đầy đủ data, dùng luôn
-  if (typeof sender === 'object' && sender !== null && 'name' in sender && sender.name) {
+    // 2. Tìm trong allUsers array
+    const foundUser = allUsers.find((u) => compareIds(u._id || u.id, senderId));
+    if (foundUser) {
+      return {
+        _id: senderId,
+        name: foundUser.name || 'Người dùng',
+        avatar: foundUser.avatar ?? null,
+      };
+    }
+
+    // 3. Tìm trong activeMembers (cho group chat)
+    if (isGroup && Array.isArray(activeMembers)) {
+      const foundMember = activeMembers.find((m) => compareIds(m._id || m.id, senderId));
+      if (foundMember) {
+        return {
+          _id: senderId,
+          name: foundMember.name || 'Thành viên',
+          avatar: foundMember.avatar ?? null,
+        };
+      }
+    }
+
+    // 4. Nếu sender là object có đầy đủ data, dùng luôn
+    if (typeof sender === 'object' && sender !== null && 'name' in sender && sender.name) {
+      return {
+        _id: senderId,
+        name: sender.name,
+        avatar: sender.avatar ?? null,
+      };
+    }
+
+    // 5. Fallback cuối cùng - dùng allUsersMap
+    const mapName = allUsersMap.get(senderId) || allUsersMap.get(String(Number(senderId)));
+
     return {
       _id: senderId,
-      name: sender.name,
-      avatar: sender.avatar ?? null,
+      name: mapName || 'Người dùng',
+      avatar: null,
     };
-  }
-
-  // 5. Fallback cuối cùng - dùng allUsersMap
-  const mapName = allUsersMap.get(senderId) || 
-                  allUsersMap.get(String(Number(senderId)));
-  
-  return {
-    _id: senderId,
-    name: mapName || 'Người dùng',
-    avatar: null,
   };
-};
   // Render tin nhắn với highlight mentions
   const renderMessageContent = (content: string, mentionedUserIds?: string[], isMe?: boolean) => {
     if (!content) return null;
@@ -974,7 +972,6 @@ function compareIds(id1: unknown, id2: unknown): boolean {
     const editedAtTimestamp = Date.now();
     const originalContentText = originalMessage.originalContent || originalMessage.content || '';
 
-
     // 1. Optimistic Update
     setMessages((prev) =>
       prev.map((m) =>
@@ -987,7 +984,7 @@ function compareIds(id1: unknown, id2: unknown): boolean {
 
     // 2. Gọi API Backend
     try {
-      const response = await fetch('/api/messages', {
+      await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -995,7 +992,6 @@ function compareIds(id1: unknown, id2: unknown): boolean {
           data: { messageId, newContent },
         }),
       });
-
 
       // 3. EMIT SOCKET EVENT
       const socketData = {
@@ -1060,7 +1056,9 @@ function compareIds(id1: unknown, id2: unknown): boolean {
             {(initialLoading || loadingMore) && (
               <div className="sticky top-0 z-20 flex items-center justify-center py-2">
                 <div className="h-4 w-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin mr-2" />
-                <span className="text-xs text-gray-500">{initialLoading ? 'Đang tải tin nhắn...' : 'Đang tải thêm...'}</span>
+                <span className="text-xs text-gray-500">
+                  {initialLoading ? 'Đang tải tin nhắn...' : 'Đang tải thêm...'}
+                </span>
               </div>
             )}
             <MessageList

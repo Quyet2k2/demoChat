@@ -23,7 +23,6 @@ interface ChatInputProps {
 }
 
 export default function ChatInput({
-  showEmojiPicker,
   onToggleEmojiPicker,
   isListening,
   onVoiceInput,

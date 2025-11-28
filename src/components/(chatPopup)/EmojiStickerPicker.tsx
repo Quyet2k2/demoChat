@@ -4,7 +4,6 @@ import React from 'react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 import IconSticker from '@/public/icons/sticker.svg';
-import Image from 'next/image';
 
 interface EmojiStickerPickerProps {
   showEmojiPicker: boolean;

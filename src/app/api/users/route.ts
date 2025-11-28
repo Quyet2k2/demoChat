@@ -199,10 +199,7 @@ export async function POST(req: NextRequest) {
             // 🔥 Type-safe filter
             const filter: UserIdFilter = { _id: queryId } as UserIdFilter;
 
-            const result = await userCollection.updateOne(
-              filter,
-              { $set: data || {} }
-            );
+            const result = await userCollection.updateOne(filter, { $set: data || {} });
 
             if (result.matchedCount === 0) {
               return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -211,12 +208,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: true, modified: result.modifiedCount });
           } else {
             // Các trường khác vẫn dùng updateByField
-            const result = await updateByField<User>(
-              collectionName,
-              field,
-              value as string | number,
-              (data || {}) as Partial<User>,
-            );
+            await updateByField<User>(collectionName, field, value as string | number, (data || {}) as Partial<User>);
             return NextResponse.json({ success: true });
           }
         } catch (error) {
@@ -404,10 +396,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Cập nhật password mới (plaintext)
-        await userCollection.updateOne(
-          filter,
-          { $set: { password: newPassword } }
-        );
+        await userCollection.updateOne(filter, { $set: { password: newPassword } });
         return NextResponse.json({
           success: true,
           message: 'Đổi mật khẩu thành công',

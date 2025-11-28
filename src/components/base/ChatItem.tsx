@@ -55,7 +55,6 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
     e.preventDefault();
     e.stopPropagation();
 
-    const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX;
     const y = e.clientY;
     const menuWidth = 220;

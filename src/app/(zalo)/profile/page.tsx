@@ -1,24 +1,24 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { User } from '@/types/User';
 import { getProxyUrl } from '@/utils/utils';
 
-type ViewMode = 'view' | 'edit' | 'password';
+// type ViewMode = 'view' | 'edit' | 'password';
 
-export default function ProfilePage() {
+function ProfilePageContent() {
   const [user, setUser] = useState<User | null>(null);
-  const [viewer, setViewer] = useState<User | null>(null);
-  const [, setViewMode] = useState<ViewMode>('view');
-  const [isUploading, setIsUploading] = useState(false);
-  const [, setIsSubmitting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [, setViewer] = useState<User | null>(null);
+  // const [, setViewMode] = useState<ViewMode>('view');
+  // const [isUploading, setIsUploading] = useState(false);
+  // const [, setIsSubmitting] = useState(false);
+  // const fileInputRef = useRef<HTMLInputElement | null>(null);
   const searchParams = useSearchParams();
 
-  const [editForm, setEditForm] = useState({ name: '', department: '', status: '' });
-  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [, setEditForm] = useState({ name: '', department: '', status: '' });
+  // const [, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [ssoTarget, setSsoTarget] = useState('');
   const [ssoLink, setSsoLink] = useState<string | null>(null);
   const [isIssuingSSO, setIsIssuingSSO] = useState(false);
@@ -107,145 +107,145 @@ export default function ProfilePage() {
     return () => {
       mounted = false;
     };
-  }, [searchParams]);
+  }, [searchParams, ssoTarget]);
 
-  const canEdit = !!viewer && !!user && String(viewer._id) === String(user._id);
+  // const canEdit = !!viewer && !!user && String(viewer._id) === String(user._id);
 
-  const handleAvatarClick = () => {
-    if (isUploading) return;
-    if (!canEdit) return;
-    fileInputRef.current?.click();
-  };
+  // const handleAvatarClick = () => {
+  //   if (isUploading) return;
+  //   if (!canEdit) return;
+  //   fileInputRef.current?.click();
+  // };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    if (!canEdit) {
-      e.target.value = '';
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      e.target.value = '';
-      return;
-    }
-    const MAX_SIZE = 5 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
-      e.target.value = '';
-      return;
-    }
-    try {
-      setIsUploading(true);
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('roomId', 'avatar');
-      formData.append('sender', user._id as string);
-      formData.append('receiver', '');
-      formData.append('type', 'image');
-      formData.append('folderName', 'Avatars');
-      const uploadRes = await fetch(`/api/upload?uploadId=avatar_${user._id}`, { method: 'POST', body: formData });
-      const uploadJson = await uploadRes.json();
-      if (!uploadRes.ok || !uploadJson.success || !uploadJson.link)
-        throw new Error(uploadJson.message || 'Upload failed');
-      const newAvatarUrl = uploadJson.link as string;
-      const updateRes = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update', field: '_id', value: user._id, data: { avatar: newAvatarUrl } }),
-      });
-      const updateJson = await updateRes.json();
-      if (!updateRes.ok || updateJson.error) throw new Error(updateJson.error || 'Update avatar failed');
-      setUser((prev) => (prev ? { ...prev, avatar: newAvatarUrl } : prev));
-      if (typeof window !== 'undefined') {
-        try {
-          const raw = localStorage.getItem('info_user');
-          if (raw) {
-            const parsed = JSON.parse(raw) as User;
-            localStorage.setItem('info_user', JSON.stringify({ ...parsed, avatar: newAvatarUrl }));
-          }
-        } catch {}
-      }
-    } catch {
-    } finally {
-      setIsUploading(false);
-      e.target.value = '';
-    }
-  };
+  // const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (!file || !user) return;
+  //   if (!canEdit) {
+  //     e.target.value = '';
+  //     return;
+  //   }
+  //   if (!file.type.startsWith('image/')) {
+  //     e.target.value = '';
+  //     return;
+  //   }
+  //   const MAX_SIZE = 5 * 1024 * 1024;
+  //   if (file.size > MAX_SIZE) {
+  //     e.target.value = '';
+  //     return;
+  //   }
+  //   try {
+  //     setIsUploading(true);
+  //     const formData = new FormData();
+  //     formData.append('file', file);
+  //     formData.append('roomId', 'avatar');
+  //     formData.append('sender', user._id as string);
+  //     formData.append('receiver', '');
+  //     formData.append('type', 'image');
+  //     formData.append('folderName', 'Avatars');
+  //     const uploadRes = await fetch(`/api/upload?uploadId=avatar_${user._id}`, { method: 'POST', body: formData });
+  //     const uploadJson = await uploadRes.json();
+  //     if (!uploadRes.ok || !uploadJson.success || !uploadJson.link)
+  //       throw new Error(uploadJson.message || 'Upload failed');
+  //     const newAvatarUrl = uploadJson.link as string;
+  //     const updateRes = await fetch('/api/users', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ action: 'update', field: '_id', value: user._id, data: { avatar: newAvatarUrl } }),
+  //     });
+  //     const updateJson = await updateRes.json();
+  //     if (!updateRes.ok || updateJson.error) throw new Error(updateJson.error || 'Update avatar failed');
+  //     setUser((prev) => (prev ? { ...prev, avatar: newAvatarUrl } : prev));
+  //     if (typeof window !== 'undefined') {
+  //       try {
+  //         const raw = localStorage.getItem('info_user');
+  //         if (raw) {
+  //           const parsed = JSON.parse(raw) as User;
+  //           localStorage.setItem('info_user', JSON.stringify({ ...parsed, avatar: newAvatarUrl }));
+  //         }
+  //       } catch {}
+  //     }
+  //   } catch {
+  //   } finally {
+  //     setIsUploading(false);
+  //     e.target.value = '';
+  //   }
+  // };
 
-  const handleUpdateInfo = async () => {
-    if (!user) return;
-    if (!canEdit) return;
-    if (!editForm.name.trim()) return;
-    try {
-      setIsSubmitting(true);
-      const updateRes = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'update',
-          field: '_id',
-          value: user._id,
-          data: { name: editForm.name.trim(), department: editForm.department.trim(), status: editForm.status.trim() },
-        }),
-      });
-      const updateJson = await updateRes.json();
-      if (!updateRes.ok || updateJson.error) throw new Error(updateJson.error || 'Update failed');
-      setUser((prev) =>
-        prev
-          ? {
-              ...prev,
-              name: editForm.name.trim(),
-              department: editForm.department.trim(),
-              status: editForm.status.trim(),
-            }
-          : prev,
-      );
-      if (typeof window !== 'undefined') {
-        try {
-          const raw = localStorage.getItem('info_user');
-          if (raw) {
-            const parsed = JSON.parse(raw) as User;
-            localStorage.setItem(
-              'info_user',
-              JSON.stringify({
-                ...parsed,
-                name: editForm.name.trim(),
-                department: editForm.department.trim(),
-                status: editForm.status.trim(),
-              }),
-            );
-          }
-        } catch {}
-      }
-      setViewMode('view');
-    } catch {
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  // const handleUpdateInfo = async () => {
+  //   if (!user) return;
+  //   if (!canEdit) return;
+  //   if (!editForm.name.trim()) return;
+  //   try {
+  //     setIsSubmitting(true);
+  //     const updateRes = await fetch('/api/users', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({
+  //         action: 'update',
+  //         field: '_id',
+  //         value: user._id,
+  //         data: { name: editForm.name.trim(), department: editForm.department.trim(), status: editForm.status.trim() },
+  //       }),
+  //     });
+  //     const updateJson = await updateRes.json();
+  //     if (!updateRes.ok || updateJson.error) throw new Error(updateJson.error || 'Update failed');
+  //     setUser((prev) =>
+  //       prev
+  //         ? {
+  //             ...prev,
+  //             name: editForm.name.trim(),
+  //             department: editForm.department.trim(),
+  //             status: editForm.status.trim(),
+  //           }
+  //         : prev,
+  //     );
+  //     if (typeof window !== 'undefined') {
+  //       try {
+  //         const raw = localStorage.getItem('info_user');
+  //         if (raw) {
+  //           const parsed = JSON.parse(raw) as User;
+  //           localStorage.setItem(
+  //             'info_user',
+  //             JSON.stringify({
+  //               ...parsed,
+  //               name: editForm.name.trim(),
+  //               department: editForm.department.trim(),
+  //               status: editForm.status.trim(),
+  //             }),
+  //           );
+  //         }
+  //       } catch {}
+  //     }
+  //     setViewMode('view');
+  //   } catch {
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
 
-  const handleChangePassword = async () => {
-    const { currentPassword, newPassword, confirmPassword } = passwordForm;
-    if (!user) return;
-    if (!canEdit) return;
-    if (!currentPassword || !newPassword || !confirmPassword) return;
-    if (newPassword.length < 6) return;
-    if (newPassword !== confirmPassword) return;
-    try {
-      setIsSubmitting(true);
-      const changeRes = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'changePassword', data: { userId: user._id, currentPassword, newPassword } }),
-      });
-      const changeJson = await changeRes.json();
-      if (!changeRes.ok || !changeJson.success) throw new Error(changeJson.message || 'Change password failed');
-      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setViewMode('view');
-    } catch {
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  // const handleChangePassword = async () => {
+  //   const { currentPassword, newPassword, confirmPassword } = passwordForm;
+  //   if (!user) return;
+  //   if (!canEdit) return;
+  //   if (!currentPassword || !newPassword || !confirmPassword) return;
+  //   if (newPassword.length < 6) return;
+  //   if (newPassword !== confirmPassword) return;
+  //   try {
+  //     setIsSubmitting(true);
+  //     const changeRes = await fetch('/api/users', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ action: 'changePassword', data: { userId: user._id, currentPassword, newPassword } }),
+  //     });
+  //     const changeJson = await changeRes.json();
+  //     if (!changeRes.ok || !changeJson.success) throw new Error(changeJson.message || 'Change password failed');
+  //     setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  //     setViewMode('view');
+  //   } catch {
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
 
   const displayName = user?.name || user?.username || '';
   const displayId = user?.username || user?._id || '';
@@ -437,6 +437,14 @@ export default function ProfilePage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-white">Loading...</div>}>
+      <ProfilePageContent />
+    </Suspense>
   );
 }
 function InfoRow({ label, value }: { label: string; value: string }) {

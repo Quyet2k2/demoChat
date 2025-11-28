@@ -1,6 +1,5 @@
 import React from 'react';
 import { Message } from '@/types/Message';
-import ICPin from '../svg/ICPin';
 import {
   HiOutlineAcademicCap,
   HiOutlineClipboardCopy,

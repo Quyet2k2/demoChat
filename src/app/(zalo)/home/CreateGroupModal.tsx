@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { HiX, HiSearch, HiCheck, HiUserGroup } from 'react-icons/hi';
+import { HiX, HiSearch, HiUserGroup } from 'react-icons/hi';
 import Image from 'next/image';
 import { User } from '../../../types/User';
 import { GroupConversation } from '@/types/Group';

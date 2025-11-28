@@ -1,23 +1,12 @@
 'use client';
 
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  HiX,
-  HiPhotograph,
-  HiLink,
-  HiDocumentText,
-  HiUserGroup,
-  HiBell,
-  HiShieldCheck,
-  HiTrash,
-  HiLogout,
-} from 'react-icons/hi';
+import { HiX } from 'react-icons/hi';
 import ModalMembers from '../../../components/base/ModalMembers';
 import { GroupConversation, MemberInfo, GroupRole } from '../../../types/Group';
 import { User } from '../../../types/User';
 import { useChatInfoPopup } from '@/hooks/useChatInfoPopup';
 import MediaPreviewModal from '@/components/(chatPopup)/MediaPreviewModal';
-import ChatInfoHeader from '../../../components/(chatPopup)/components/ChatInfoHeader';
 import GroupAvatarSection from '../../../components/(chatPopup)/components/GroupAvatarSection';
 import UserAvatarSection from '../../../components/(chatPopup)/components/UserAvatarSection';
 import ChatQuickActions from '../../../components/(chatPopup)/components/ChatQuickActions';
@@ -140,7 +129,7 @@ export default function ChatInfoPopup({
 
         setGroupAvatar(uploadJson.link);
         reLoad?.();
-      } catch (error) {
+      } catch {
         alert('Cập nhật ảnh nhóm thất bại. Vui lòng thử lại.');
       } finally {
         setIsGroupAvatarUploading(false);

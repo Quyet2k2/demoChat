@@ -83,15 +83,25 @@ export async function POST(req: NextRequest) {
         // ... (phần còn lại của case 'read' để lấy thông tin sender và trả về)
         // ... (phần lấy danh sách senderIds, query users, enrichedMessages)
 
-        // Lấy danh sách senderId
-        const senderIds = [...new Set(messages.map((m) => String(m.sender)))]
-          .filter(ObjectId.isValid)
-          .map((id) => new ObjectId(id));
+        // Lấy danh sách senderId (hỗ trợ cả ObjectId, number, string)
+        const rawSenderIds = [...new Set(messages.map((m) => {
+          const s = (m as Message).sender as unknown;
+          if (s && typeof s === 'object' && s !== null && '_id' in (s as Record<string, unknown>)) {
+            return String((s as Record<string, unknown>)._id);
+          }
+          return String((m as Message).sender);
+        }))];
+
+        const senderIdValues = rawSenderIds.map((idStr) => {
+          if (ObjectId.isValid(idStr)) return new ObjectId(idStr);
+          const num = Number(idStr);
+          return Number.isNaN(num) ? idStr : num;
+        });
 
         // ... (các bước lấy userMap và enrichedMessages)
 
         const usersResult = await getAllRows<User>(USERS_COLLECTION_NAME, {
-          filters: { _id: { $in: senderIds } },
+          filters: { _id: { $in: senderIdValues } },
           limit: 999999,
         });
         const userMap = new Map<string, User>();
@@ -104,14 +114,14 @@ export async function POST(req: NextRequest) {
             ...msg,
             sender: user
               ? { _id: String(user._id), name: user.name, avatar: user.avatar }
-              : { _id: msg.sender, name: 'Unknown', avatar: null },
+              : { _id: String(msg.sender), name: 'Unknown', avatar: null },
           };
         });
 
-        // 7. Trả về
+        const uniqueMessages = Array.from(new Map(enrichedMessages.map((m) => [String(m._id), m])).values());
         return NextResponse.json({
           total: result.total,
-          data: enrichedMessages,
+          data: uniqueMessages,
         });
       }
 

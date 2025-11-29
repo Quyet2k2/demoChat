@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
         hostname: 'mega.nz',
         pathname: '/file/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.jsdelivr.net',
+      },
     ],
   },
   // Khai báo root cho Turbopack để tránh chọn sai workspace

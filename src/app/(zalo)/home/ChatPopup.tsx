@@ -559,13 +559,27 @@ export default function ChatWindow({
   });
 
   const onEmojiClick = useCallback(
-    (emojiData: EmojiClickData) => {
-      if (editableRef.current) {
-        const editable = editableRef.current;
-        editable.focus();
-        insertTextAtCursor(editable, emojiData.emoji);
-        handleInputChangeEditable();
-      }
+    (emoji: EmojiClickData | string) => {
+      if (!editableRef.current) return;
+
+      const toString = (input: EmojiClickData | string): string => {
+        const raw = typeof input === 'string' ? input : input.emoji;
+        const hexLike = /^[0-9a-fA-F-]+$/;
+        if (hexLike.test(raw)) {
+          const codePoints = raw
+            .split('-')
+            .map((h) => parseInt(h, 16))
+            .filter((n) => !Number.isNaN(n));
+          if (codePoints.length > 0) return String.fromCodePoint(...codePoints);
+        }
+        return raw;
+      };
+
+      const editable = editableRef.current;
+      const value = toString(emoji);
+      editable.focus();
+      insertTextAtCursor(editable, value);
+      handleInputChangeEditable();
     },
     [editableRef, handleInputChangeEditable],
   );
@@ -1091,7 +1105,7 @@ export default function ChatWindow({
               showEmojiPicker={showEmojiPicker}
               pickerTab={pickerTab}
               setPickerTab={setPickerTab}
-              onEmojiClick={onEmojiClick}
+              onEmojiClick={(unicode: string) => onEmojiClick({ emoji: unicode } as EmojiClickData)}
               stickers={STICKERS}
               onSelectSticker={handleSendSticker}
             />

@@ -22,18 +22,34 @@ export function useChatMentions({ allUsers, activeMembers, currentUserId }: UseC
   const getPlainTextFromEditable = useCallback((): string => {
     if (!editableRef.current) return '';
 
-    let result = '';
-    editableRef.current.childNodes.forEach((node) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        result += node.textContent;
-      } else if (node.nodeName === 'SPAN' && (node as HTMLElement).dataset.mention) {
-        const userId = (node as HTMLElement).dataset.userId;
-        const userName = (node as HTMLElement).dataset.userName;
-        result += `@[${userName}](${userId})`;
-      }
-    });
+    const pieces: string[] = [];
 
-    return result;
+    const walk = (node: Node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        if (node.textContent) pieces.push(node.textContent);
+        return;
+      }
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as HTMLElement;
+        if (el.dataset && el.dataset.mention) {
+          const userId = el.dataset.userId || '';
+          const userName = el.dataset.userName || '';
+          pieces.push(`@[${userName}](${userId})`);
+          return;
+        }
+        if (el.tagName === 'BR') {
+          pieces.push('\n');
+          return;
+        }
+        el.childNodes.forEach(walk);
+        if (el.tagName === 'DIV' || el.tagName === 'P') {
+          pieces.push('\n');
+        }
+      }
+    };
+
+    editableRef.current.childNodes.forEach(walk);
+    return pieces.join('');
   }, []);
 
   const getCursorPosition = (): number => {

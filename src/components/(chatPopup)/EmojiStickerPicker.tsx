@@ -1,15 +1,15 @@
 'use client';
 
-import React from 'react';
-import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-
+import React, { useRef, useEffect, useState } from 'react';
+import EmojiFB from '@/components/(chatPopup)/EmojiFB';
+import { FB_EMOJIS } from '@/data/fbEmojis';
 import IconSticker from '@/public/icons/sticker.svg';
 
 interface EmojiStickerPickerProps {
   showEmojiPicker: boolean;
   pickerTab: 'emoji' | 'sticker';
   setPickerTab: (tab: 'emoji' | 'sticker') => void;
-  onEmojiClick: (emojiData: EmojiClickData) => void;
+  onEmojiClick: (unicode: string) => void;
   stickers: string[];
   onSelectSticker: (url: string) => void;
 }
@@ -22,10 +22,29 @@ export default function EmojiStickerPicker({
   stickers,
   onSelectSticker,
 }: EmojiStickerPickerProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [pickerHeight, setPickerHeight] = useState(300);
+
+  // Resize để Emoji FB responsive
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      const h = entries[0].contentRect.height;
+      if (h > 50) {
+        setPickerHeight(h - 10);
+      }
+    });
+    resizeObserver.observe(containerRef.current);
+
+    return () => resizeObserver.disconnect();
+  }, []);
+
   if (!showEmojiPicker) return null;
 
   return (
     <div className="absolute bottom-full left-0 right-0 sm:right-auto mb-2 bg-white shadow-xl border border-gray-200 rounded-xl z-50 w-full sm:w-80 md:w-96 lg:w-[28rem] xl:w-[32rem] max-w-[90vw] flex flex-col overflow-hidden">
+      {/* Tabs */}
       <div className="flex border-b">
         <button
           className={`flex-1 p-2 sm:p-3 text-xs sm:text-sm font-medium ${pickerTab === 'emoji' ? 'bg-gray-100 text-blue-600' : 'hover:bg-gray-50'}`}
@@ -33,39 +52,39 @@ export default function EmojiStickerPicker({
         >
           Emoji
         </button>
+
         <button
           className={`flex-1 p-2 sm:p-3 text-xs sm:text-sm font-medium ${pickerTab === 'sticker' ? 'bg-gray-100 text-blue-600' : 'hover:bg-gray-50'}`}
           onClick={() => setPickerTab('sticker')}
         >
-          <img
-            src={IconSticker.src}
-            alt="Sticker"
-            className="inline mr-1 w-[10px] h-[10px] sm:w-[14px] sm:h-[14px] md:w-4 md:h-4"
-          />
+          <img src={IconSticker.src} alt="Sticker" className="inline mr-1 w-[14px] h-[14px]" />
           Sticker
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar max-h-[70vh]">
+      {/* Emoji / Sticker Content */}
+      <div ref={containerRef} className="flex-1 overflow-y-auto custom-scrollbar min-h-[18rem] max-h-[70vh] p-2">
         {pickerTab === 'emoji' ? (
-          <div className="h-[18rem] sm:h-[24rem] md:h-[30rem] lg:h-[36rem] xl:h-[40rem]">
-            <EmojiPicker
-              onEmojiClick={onEmojiClick}
-              width="100%"
-              height="100%"
-              searchDisabled={false}
-              skinTonesDisabled
-            />
+          <div style={{ height: pickerHeight }} className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 gap-2">
+            {FB_EMOJIS.map((unicode) => (
+              <div
+                key={unicode}
+                onClick={() => onEmojiClick(unicode)}
+                className="cursor-pointer flex items-center justify-center rounded hover:bg-gray-100"
+              >
+                <EmojiFB unicode={unicode} size={36} />
+              </div>
+            ))}
           </div>
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2 p-2">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
             {stickers.map((url, idx) => (
               <img
                 key={idx}
                 src={url}
-                alt="sticker"
-                className="w-full h-10 sm:h-12 md:h-14 lg:h-16 xl:h-20 object-contain cursor-pointer hover:bg-gray-100 rounded p-1"
+                className="w-full h-16 object-contain cursor-pointer hover:bg-gray-100 rounded p-1"
                 onClick={() => onSelectSticker(url)}
+                alt="sticker"
               />
             ))}
           </div>

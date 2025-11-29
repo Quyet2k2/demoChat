@@ -451,93 +451,104 @@ export default function ChatWindow({
     setReplyingTo(message);
   }, []);
 
-  const handleJumpToMessage = useCallback(async (messageId: string) => {
-    if (window.innerWidth < 640) {
-      setShowPopup(false);
-    }
-
-    const messageElement = document.getElementById(`msg-${messageId}`);
-    const container = messagesContainerRef.current;
-
-    if (messageElement) {
-      messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-      if (container) {
-        const elRect = messageElement.getBoundingClientRect();
-        const cRect = container.getBoundingClientRect();
-        const delta = elRect.top - cRect.top - container.clientHeight / 2 + elRect.height / 2;
-        container.scrollBy({ top: delta, behavior: 'smooth' });
+  const handleJumpToMessage = useCallback(
+    async (messageId: string) => {
+      if (window.innerWidth < 640) {
+        setShowPopup(false);
       }
 
-      setHighlightedMsgId(messageId);
-      setTimeout(() => {
-        setHighlightedMsgId(null);
-      }, 2500);
-    } else {
-      jumpLoadingRef.current = true;
-      try {
-        let targetTs: number | null = null;
+      const messageElement = document.getElementById(`msg-${messageId}`);
+      const container = messagesContainerRef.current;
+
+      if (messageElement) {
+        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        if (container) {
+          const elRect = messageElement.getBoundingClientRect();
+          const cRect = container.getBoundingClientRect();
+          const delta = elRect.top - cRect.top - container.clientHeight / 2 + elRect.height / 2;
+          container.scrollBy({ top: delta, behavior: 'smooth' });
+        }
+
+        setHighlightedMsgId(messageId);
+        setTimeout(() => {
+          setHighlightedMsgId(null);
+        }, 2500);
+      } else {
+        jumpLoadingRef.current = true;
         try {
-          const r = await fetch('/api/messages', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'getById', _id: messageId }),
-          });
-          const j = await r.json();
-          const t = (j && (j.row?.row || j.row)) as Message | undefined;
-          if (t && String(t.roomId) === roomId) {
-            targetTs = Number(t.timestamp) || null;
-          }
-        } catch {}
+          let targetTs: number | null = null;
+          try {
+            const r = await fetch('/api/messages', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'getById', _id: messageId }),
+            });
+            const j = await r.json();
+            const t = (j && (j.row?.row || j.row)) as Message | undefined;
+            if (t && String(t.roomId) === roomId) {
+              targetTs = Number(t.timestamp) || null;
+            }
+          } catch {}
 
-        if (targetTs == null) {
+          if (targetTs == null) {
+            alert('Tin nhắn này không còn hiển thị trong danh sách hiện tại.');
+            return;
+          }
+
+          const olderLimit = 200;
+          const newerLimit = 60;
+
+          const [olderRes, newerRes] = await Promise.all([
+            readMessagesApi(roomId, {
+              limit: olderLimit,
+              sortOrder: 'desc',
+              extraFilters: { timestamp: { $lte: targetTs } },
+            }),
+            readMessagesApi(roomId, {
+              limit: newerLimit,
+              sortOrder: 'asc',
+              extraFilters: { timestamp: { $gt: targetTs } },
+            }),
+          ]);
+
+          const olderRawDesc = Array.isArray(olderRes.data) ? (olderRes.data as Message[]) : [];
+          const olderAsc = olderRawDesc.slice().reverse();
+          const newerAsc = Array.isArray(newerRes.data) ? (newerRes.data as Message[]) : [];
+
+          const existing = new Set(messages.map((m) => String(m._id)));
+          const mergedAsc = [...olderAsc, ...newerAsc].filter((m) => !existing.has(String(m._id)));
+
+          if (mergedAsc.length > 0) {
+            setMessages((prev) => [...mergedAsc, ...prev]);
+            const newOldest = mergedAsc[0]?.timestamp ?? oldestTs;
+            setOldestTs(newOldest ?? oldestTs);
+            setHasMore(olderRawDesc.length === olderLimit);
+          }
+
+          await new Promise((r) => setTimeout(r, 60));
+          const el = document.getElementById(`msg-${messageId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (container) {
+              const elRect = el.getBoundingClientRect();
+              const cRect = container.getBoundingClientRect();
+              const delta = elRect.top - cRect.top - container.clientHeight / 2 + elRect.height / 2;
+              container.scrollBy({ top: delta, behavior: 'smooth' });
+            }
+            setHighlightedMsgId(messageId);
+            setTimeout(() => setHighlightedMsgId(null), 2500);
+            return;
+          }
+
           alert('Tin nhắn này không còn hiển thị trong danh sách hiện tại.');
-          return;
+        } finally {
+          jumpLoadingRef.current = false;
         }
-
-        const olderLimit = 200;
-        const newerLimit = 60;
-
-        const [olderRes, newerRes] = await Promise.all([
-          readMessagesApi(roomId, { limit: olderLimit, sortOrder: 'desc', extraFilters: { timestamp: { $lte: targetTs } } }),
-          readMessagesApi(roomId, { limit: newerLimit, sortOrder: 'asc', extraFilters: { timestamp: { $gt: targetTs } } }),
-        ]);
-
-        const olderRawDesc = Array.isArray(olderRes.data) ? (olderRes.data as Message[]) : [];
-        const olderAsc = olderRawDesc.slice().reverse();
-        const newerAsc = Array.isArray(newerRes.data) ? (newerRes.data as Message[]) : [];
-
-        const existing = new Set(messages.map((m) => String(m._id)));
-        const mergedAsc = [...olderAsc, ...newerAsc].filter((m) => !existing.has(String(m._id)));
-
-        if (mergedAsc.length > 0) {
-          setMessages((prev) => [...mergedAsc, ...prev]);
-          const newOldest = mergedAsc[0]?.timestamp ?? oldestTs;
-          setOldestTs(newOldest ?? oldestTs);
-          setHasMore(olderRawDesc.length === olderLimit);
-        }
-
-        await new Promise((r) => setTimeout(r, 60));
-        const el = document.getElementById(`msg-${messageId}`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          if (container) {
-            const elRect = el.getBoundingClientRect();
-            const cRect = container.getBoundingClientRect();
-            const delta = elRect.top - cRect.top - container.clientHeight / 2 + elRect.height / 2;
-            container.scrollBy({ top: delta, behavior: 'smooth' });
-          }
-          setHighlightedMsgId(messageId);
-          setTimeout(() => setHighlightedMsgId(null), 2500);
-          return;
-        }
-
-        alert('Tin nhắn này không còn hiển thị trong danh sách hiện tại.');
-      } finally {
-        jumpLoadingRef.current = false;
       }
-    }
-  }, [hasMore, loadMoreMessages, roomId, messages, oldestTs]);
+    },
+    [roomId, messages, oldestTs],
+  );
 
   useEffect(() => {
     if (!scrollToMessageId) return;

@@ -10,7 +10,7 @@ import MessageFilter, { FilterType } from '../(chatPopup)/MessageFilter';
 import Image from 'next/image';
 
 // React Icons – Bộ hiện đại nhất 2025
-import { HiMagnifyingGlass, HiXMark, HiUsers, HiUserCircle, HiChatBubbleLeftRight, HiUserGroup } from 'react-icons/hi2';
+import { HiMagnifyingGlass, HiXMark, HiUsers, HiUserCircle, HiChatBubbleLeftRight } from 'react-icons/hi2';
 
 interface SidebarProps {
   currentUser: User;
@@ -362,7 +362,7 @@ export default function Sidebar({
 
             <button
               onClick={() => setShowCreateGroupModal(true)}
-              className="cursor-pointer p-2 bg-gradient-to-br cursor-pointer from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 rounded-3xl shadow-xl transition-all duration-300 active:scale-95"
+              className="cursor-pointer p-2 bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 rounded-3xl shadow-xl transition-all duration-300 active:scale-95"
               title="Tạo nhóm mới"
             >
               <HiUsers className="w-5 h-5 text-white" />

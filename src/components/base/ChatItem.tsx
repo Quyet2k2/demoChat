@@ -50,14 +50,14 @@ export default function ChatItem({ item, isGroup, selectedChat, onSelectChat, on
   const lastMessage = item.lastMessage || (isGroup ? 'Nhóm mới tạo' : 'Bắt đầu trò chuyện');
   const timeDisplay = formatTimeAgo(item.lastMessageAt);
 
-  const PRESENCE_THRESHOLD_MS = 5 * 60 * 1000;
-  const presenceOnline = (() => {
-    if (isGroup) return undefined;
-    const u = item as User;
-    const ls = u.lastSeen ?? null;
-    if (ls != null) return Date.now() - ls <= PRESENCE_THRESHOLD_MS;
-    return !!u.online;
-  })();
+  // const PRESENCE_THRESHOLD_MS = 5 * 60 * 1000;
+  // const presenceOnline = (() => {
+  //   if (isGroup) return undefined;
+  //   const u = item as User;
+  //   const ls = u.lastSeen ?? null;
+  //   if (ls != null) return Date.now() - ls <= PRESENCE_THRESHOLD_MS;
+  //   return !!u.online;
+  // })();
 
   // Context menu thông minh
   const handleContextMenu = (e: React.MouseEvent) => {

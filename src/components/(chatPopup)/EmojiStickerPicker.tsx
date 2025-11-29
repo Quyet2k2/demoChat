@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import EmojiFB from '@/components/(chatPopup)/EmojiFB';
 import { FB_EMOJIS } from '@/data/fbEmojis';
 import IconSticker from '@/public/icons/sticker.svg';
+import Image from 'next/image';
 
 interface EmojiStickerPickerProps {
   showEmojiPicker: boolean;
@@ -57,7 +58,7 @@ export default function EmojiStickerPicker({
           className={`flex-1 p-2 sm:p-3 cursor-pointer text-xs sm:text-sm font-medium ${pickerTab === 'sticker' ? 'bg-gray-100 text-blue-600' : 'hover:bg-gray-50'}`}
           onClick={() => setPickerTab('sticker')}
         >
-          <img src={IconSticker.src} alt="Sticker" className="inline mr-1 w-[14px] h-[14px]" />
+          <Image width={14} height={14} src={IconSticker.src} alt="Sticker" className="inline mr-1 w-[14px] h-[14px]" />
           Sticker
         </button>
       </div>
@@ -79,8 +80,10 @@ export default function EmojiStickerPicker({
         ) : (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
             {stickers.map((url, idx) => (
-              <img
+              <Image
                 key={idx}
+                width={40}
+                height={40}
                 src={url}
                 className="w-full h-16 object-contain cursor-pointer hover:bg-gray-100 rounded p-1"
                 onClick={() => onSelectSticker(url)}
